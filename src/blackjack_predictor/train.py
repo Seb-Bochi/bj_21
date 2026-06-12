@@ -12,7 +12,8 @@ def train():
     epochs = 5
     for _ in range(epochs):
         running_loss = 0
-        
+        # states consits of [player_total, dealer_upcard, usable_ace]
+        # actions consists of [hit, stand]
         for states, actions in trainloader:
             predictions = model(states)
 
