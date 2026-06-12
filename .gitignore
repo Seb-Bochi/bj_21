@@ -180,3 +180,7 @@ cython_debug/
 #data 
 data/
 /data
+
+
+#pyproject.lock
+.lock
