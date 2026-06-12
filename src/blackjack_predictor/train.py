@@ -2,6 +2,7 @@ from blackjack_predictor.model import Model
 from blackjack_predictor.data import MyDataset
 from torch import nn, optim
 
+
 def train():
     dataset = MyDataset("data/raw")
     model = Model()
@@ -26,6 +27,7 @@ def train():
             runnig_loss += loss.item()
         else:
             print("fTraining loss: {runnig_loss / len(trainloader)}")
+
 
 if __name__ == "__main__":
     train()

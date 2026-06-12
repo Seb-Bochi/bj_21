@@ -1,8 +1,10 @@
 from torch import nn, softmax
 import torch
 
+
 class Model(nn.Module):
     """Just a dummy model to show how to structure your code"""
+
     def __init__(self):
         super().__init__()
         self.hidden = nn.Linear(3, 16)
@@ -13,6 +15,7 @@ class Model(nn.Module):
         x = self.hidden(x)
         x = self.relu(x)
         return self.output(x)
+
 
 if __name__ == "__main__":
     model = Model()

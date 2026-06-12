@@ -55,5 +55,3 @@ line-length = 120
 
 [tool.coverage.run]
 omit = ["tests/*"]
-    "torch>=2.12.0",
-]
