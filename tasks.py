@@ -1,30 +1,45 @@
 import os
+from pathlib import Path
 
-from invoke import Context, task
+from invoke.context import Context
+from invoke.tasks import task
 
 WINDOWS = os.name == "nt"
 PROJECT_NAME = "blackjack_predictor"
 PYTHON_VERSION = "3.12"
 
 
+def uv_command() -> str:
+    """Return the uv executable path if it exists locally, otherwise fall back to the command name."""
+
+    local_uv = Path.home() / ".local" / "bin" / "uv.exe"
+    return str(local_uv) if local_uv.exists() else "uv"
+
+
 # Project commands
 @task
 def preprocess_data(ctx: Context) -> None:
     """Preprocess data."""
-    ctx.run(f"uv run src/{PROJECT_NAME}/data.py data/raw data/processed", echo=True, pty=not WINDOWS)
+    ctx.run(f"{uv_command()} run src/{PROJECT_NAME}/data.py data/raw data/processed", echo=True, pty=not WINDOWS)
 
 
 @task
 def train(ctx: Context) -> None:
     """Train model."""
-    ctx.run(f"uv run src/{PROJECT_NAME}/train.py", echo=True, pty=not WINDOWS)
+    ctx.run(f"{uv_command()} run src/{PROJECT_NAME}/train.py", echo=True, pty=not WINDOWS)
+
+
+@task
+def evaluate(ctx: Context) -> None:
+    """Evaluate model accuracy."""
+    ctx.run(f"{uv_command()} run src/{PROJECT_NAME}/evaluate.py", echo=True, pty=not WINDOWS)
 
 
 @task
 def test(ctx: Context) -> None:
     """Run tests."""
-    ctx.run("uv run coverage run -m pytest tests/", echo=True, pty=not WINDOWS)
-    ctx.run("uv run coverage report -m -i", echo=True, pty=not WINDOWS)
+    ctx.run(f"{uv_command()} run coverage run -m pytest tests/", echo=True, pty=not WINDOWS)
+    ctx.run(f"{uv_command()} run coverage report -m -i", echo=True, pty=not WINDOWS)
 
 
 @task
@@ -44,10 +59,10 @@ def docker_build(ctx: Context, progress: str = "plain") -> None:
 @task
 def build_docs(ctx: Context) -> None:
     """Build documentation."""
-    ctx.run("uv run mkdocs build --config-file docs/mkdocs.yaml --site-dir build", echo=True, pty=not WINDOWS)
+    ctx.run(f"{uv_command()} run mkdocs build --config-file docs/mkdocs.yaml --site-dir build", echo=True, pty=not WINDOWS)
 
 
 @task
 def serve_docs(ctx: Context) -> None:
     """Serve documentation."""
-    ctx.run("uv run mkdocs serve --config-file docs/mkdocs.yaml", echo=True, pty=not WINDOWS)
+    ctx.run(f"{uv_command()} run mkdocs serve --config-file docs/mkdocs.yaml", echo=True, pty=not WINDOWS)

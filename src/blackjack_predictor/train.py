@@ -1,10 +1,14 @@
 from pathlib import Path
 
+import torch
 from torch import nn, optim
 from torch.utils.data import DataLoader
 
 from blackjack_predictor.data import MyDataset
 from blackjack_predictor.model import Model
+
+
+MODEL_PATH = Path("models/model.pth")
 
 
 def train() -> None:
@@ -30,6 +34,10 @@ def train() -> None:
             running_loss += loss.item()
 
         print(f"Epoch {epoch + 1}: training loss = {running_loss / len(trainloader):.4f}")
+
+    MODEL_PATH.parent.mkdir(parents=True, exist_ok=True)
+    torch.save(model.state_dict(), MODEL_PATH)
+    print(f"Saved model to {MODEL_PATH}")
 
 if __name__ == "__main__":
     train()

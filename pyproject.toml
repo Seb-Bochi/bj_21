@@ -18,10 +18,10 @@ classifiers = [
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "dvc>=3.67.1",
+    "dvc[gdrive]>=3.67.1",
     "dvc-gdrive>=3.0.1",
     "fastapi==0.115.6",
-      "gdown==5.2.0",
+    "gdown==5.2.0",
     "pandas==3.0.3",
     "pywin32>=312",
     "torch==2.6.0",
