@@ -155,6 +155,11 @@ venv.bak/
 # mkdocs documentation
 /site
 
+# project data artifacts
+/blkjckhands.csv
+/data/raw/blkjckhands.csv
+/data/processed/processed.csv
+
 # mypy
 .mypy_cache/
 .dmypy.json
