@@ -1,4 +1,4 @@
-from torch import nn, softmax
+from torch import nn
 import torch
 
 
@@ -7,7 +7,7 @@ class Model(nn.Module):
 
     def __init__(self):
         super().__init__()
-        self.hidden = nn.Linear(3, 16)
+        self.hidden = nn.Linear(13, 16)
         self.relu = nn.ReLU()
         self.output = nn.Linear(16, 2)
 
@@ -19,5 +19,5 @@ class Model(nn.Module):
 
 if __name__ == "__main__":
     model = Model()
-    x = torch.rand(1)
+    x = torch.rand(1, 13)
     print(f"Output shape of model: {model(x).shape}")

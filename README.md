@@ -53,4 +53,21 @@ Created using [mlops_template](https://github.com/SkafteNicki/mlops_template),
 a [cookiecutter template](https://github.com/cookiecutter/cookiecutter) for getting
 started with Machine Learning Operations (MLOps).
 
+## Reproducible setup
+
+1. Install dependencies with `uv sync`.
+2. Either place `blkjckhands.csv` in the repository root or `data/raw/`, or set one of these environment variables so the pipeline can download it from Google Drive:
+	- `BLACKJACK_GDRIVE_URL`
+	- `BLACKJACK_GDRIVE_FILE_ID`
+3. Preprocess the data with `uv run invoke preprocess-data`.
+4. Train the model with `uv run invoke train`.
+
+Example PowerShell setup:
+
+```powershell
+$env:BLACKJACK_GDRIVE_FILE_ID = "your-google-drive-file-id"
+uv run invoke preprocess-data
+uv run invoke train
+```
+
 ````
