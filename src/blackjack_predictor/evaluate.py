@@ -3,7 +3,7 @@ from pathlib import Path
 import torch
 from torch.utils.data import DataLoader
 
-from blackjack_predictor.data import MyDataset
+from blackjack_predictor.data_ import MyDataset
 from blackjack_predictor.model import Model
 
 

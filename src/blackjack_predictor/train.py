@@ -1,43 +1,33 @@
-from pathlib import Path
-
 import torch
-from torch import nn, optim
 from torch.utils.data import DataLoader
-
-from blackjack_predictor.data import MyDataset
-from blackjack_predictor.model import Model
+from pytorch_lightning import Trainer
+from blackjack_predictor.data_ import BlackjackDataModule
+from pathlib import Path
+from blackjack_predictor.tasks import PredictionTask
 
 
 MODEL_PATH = Path("models/model.pth")
 
 
-def train() -> None:
-    dataset = MyDataset(Path("data/raw"))
-    trainloader = DataLoader(dataset, batch_size=32, shuffle=True)
+def train(base_model: torch.nn.Module) -> None:
+    """Trains the given model using PyTorch Lightning."""
+    
+    processed_data_path = Path("data/processed/blkjckhands_processed.csv")
 
-    model = Model()
-    criterion = nn.CrossEntropyLoss()
-    optimizer = optim.SGD(model.parameters(), lr=0.003)
+    dm = BlackjackDataModule(data_path=processed_data_path, batch_size=32)
+    task = PredictionTask(model=base_model, lr=0.003)
+ 
+    trainer = Trainer(max_epochs=5)
 
-    epochs = 5
-    for epoch in range(epochs):
-        running_loss = 0.0
+    # 4. Execute the training run
+    trainer.fit(task, datamodule=dm)
 
-        for states, actions in trainloader:
-            predictions = model(states)
-            loss = criterion(predictions, actions)
-
-            optimizer.zero_grad()
-            loss.backward()
-            optimizer.step()
-
-            running_loss += loss.item()
-
-        print(f"Epoch {epoch + 1}: training loss = {running_loss / len(trainloader):.4f}")
 
     MODEL_PATH.parent.mkdir(parents=True, exist_ok=True)
     torch.save(model.state_dict(), MODEL_PATH)
     print(f"Saved model to {MODEL_PATH}")
 
 if __name__ == "__main__":
-    train()
+    from blackjack_predictor.models.ffnn import SimpleFNN
+    model = SimpleFNN()
+    train(base_model=model)
