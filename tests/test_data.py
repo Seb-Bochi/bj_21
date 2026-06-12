@@ -5,7 +5,7 @@ import pandas as pd
 import pytest
 from torch.utils.data import Dataset
 
-from blackjack_predictor.data import MyDataset
+from blackjack_predictor.data import MyDataset, split_dataset
 
 
 def _write_sample_csv(folder: Path) -> Path:
@@ -79,6 +79,19 @@ def test_preprocess_writes_processed_file(tmp_path):
     processed_file = output_folder / "processed.csv"
     assert processed_file.exists()
     assert pd.read_csv(processed_file).shape[0] == 2
+
+
+def test_split_dataset_returns_deterministic_disjoint_subsets(tmp_path):
+    """Test that the split helper returns a stable train/test split."""
+    _write_sample_csv(tmp_path / "data" / "raw")
+
+    dataset = MyDataset(tmp_path / "data" / "raw")
+    train_dataset, test_dataset = split_dataset(dataset, test_size=0.5, seed=42)
+
+    assert len(train_dataset) + len(test_dataset) == len(dataset)
+    assert len(train_dataset) > 0
+    assert len(test_dataset) > 0
+    assert set(train_dataset.indices).isdisjoint(test_dataset.indices)
 
 
 def test_my_dataset_raises_when_csv_is_missing(tmp_path):

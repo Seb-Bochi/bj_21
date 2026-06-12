@@ -4,7 +4,7 @@ import torch
 from torch import nn, optim
 from torch.utils.data import DataLoader
 
-from blackjack_predictor.data import MyDataset
+from blackjack_predictor.data import MyDataset, split_dataset
 from blackjack_predictor.model import Model
 
 
@@ -13,7 +13,8 @@ MODEL_PATH = Path("models/model.pth")
 
 def train() -> None:
     dataset = MyDataset(Path("data/raw"))
-    trainloader = DataLoader(dataset, batch_size=32, shuffle=True)
+    train_dataset, _ = split_dataset(dataset)
+    trainloader = DataLoader(train_dataset, batch_size=32, shuffle=True)
 
     model = Model()
     criterion = nn.CrossEntropyLoss()

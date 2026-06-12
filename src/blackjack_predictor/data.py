@@ -1,15 +1,18 @@
 from pathlib import Path
 import os
+from random import Random
 
 import gdown
 import pandas as pd
 import torch
-from torch.utils.data import Dataset
+from torch.utils.data import Dataset, Subset
 
 
 CSV_FILENAME = "blkjckhands.csv"
 GDRIVE_URL_ENV = "BLACKJACK_GDRIVE_URL"
 GDRIVE_FILE_ID_ENV = "BLACKJACK_GDRIVE_FILE_ID"
+TEST_SIZE = 0.2
+SPLIT_SEED = 42
 
 
 class MyDataset(Dataset):
@@ -106,6 +109,46 @@ class MyDataset(Dataset):
         output_folder = Path(output_folder)
         output_folder.mkdir(parents=True, exist_ok=True)
         self.df.to_csv(output_folder / "processed.csv", index=False)
+
+
+def split_dataset(dataset: MyDataset, test_size: float = TEST_SIZE, seed: int = SPLIT_SEED) -> tuple[Subset, Subset]:
+    """Split a dataset into deterministic train and test subsets."""
+
+    if not 0 < test_size < 1:
+        raise ValueError("test_size must be between 0 and 1")
+
+    if len(dataset) < 2:
+        raise ValueError("dataset must contain at least 2 rows to create a train/test split")
+
+    rng = Random(seed)
+    train_indices: list[int] = []
+    test_indices: list[int] = []
+
+    label_to_indices: dict[int, list[int]] = {}
+    for index, label in enumerate(dataset.labels.tolist()):
+        label_to_indices.setdefault(int(label), []).append(index)
+
+    for indices in label_to_indices.values():
+        shuffled_indices = indices.copy()
+        rng.shuffle(shuffled_indices)
+
+        split_point = int(round(len(shuffled_indices) * test_size))
+        if len(shuffled_indices) > 1:
+            split_point = max(1, min(len(shuffled_indices) - 1, split_point))
+        else:
+            split_point = 0
+
+        test_indices.extend(shuffled_indices[:split_point])
+        train_indices.extend(shuffled_indices[split_point:])
+
+    if not train_indices or not test_indices:
+        all_indices = list(range(len(dataset)))
+        rng.shuffle(all_indices)
+        split_point = max(1, min(len(all_indices) - 1, int(round(len(all_indices) * (1 - test_size)))))
+        train_indices = all_indices[:split_point]
+        test_indices = all_indices[split_point:]
+
+    return Subset(dataset, train_indices), Subset(dataset, test_indices)
 
 
 

@@ -3,7 +3,7 @@ from pathlib import Path
 import torch
 from torch.utils.data import DataLoader
 
-from blackjack_predictor.data import MyDataset
+from blackjack_predictor.data import MyDataset, split_dataset
 from blackjack_predictor.model import Model
 
 
@@ -14,7 +14,8 @@ def evaluate(model_path: Path = MODEL_PATH, data_path: Path = Path("data/raw")) 
 	"""Load a trained model and report accuracy on the available dataset."""
 
 	dataset = MyDataset(data_path)
-	loader = DataLoader(dataset, batch_size=32, shuffle=False)
+	_, test_dataset = split_dataset(dataset)
+	loader = DataLoader(test_dataset, batch_size=32, shuffle=False)
 
 	model = Model()
 	if not model_path.exists():
