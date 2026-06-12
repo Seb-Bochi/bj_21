@@ -2,7 +2,7 @@ from torch import nn
 import torch
 
 
-class Model(nn.Module):
+class SimpleFNN(nn.Module):
     """Just a dummy model to show how to structure your code"""
 
     def __init__(self):
@@ -18,6 +18,6 @@ class Model(nn.Module):
 
 
 if __name__ == "__main__":
-    model = Model()
+    model = SimpleFNN()
     x = torch.rand(1, 13)
     print(f"Output shape of model: {model(x).shape}")

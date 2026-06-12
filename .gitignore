@@ -188,4 +188,7 @@ data/
 
 
 #pyproject.lock
-.lock
+uv.lock
+
+#lightning
+lightning_logs/

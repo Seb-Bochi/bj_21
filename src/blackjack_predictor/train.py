@@ -1,35 +1,29 @@
-from pathlib import Path
-
-from torch import nn, optim
+import torch
 from torch.utils.data import DataLoader
+from pytorch_lightning import Trainer
+from blackjack_predictor.data import BlackjackDataModule
+from pathlib import Path
+from blackjack_predictor.tasks import PredictionTask
 
-from blackjack_predictor.data import MyDataset
-from blackjack_predictor.model import Model
 
 
-def train() -> None:
-    dataset = MyDataset(Path("data/raw"))
-    trainloader = DataLoader(dataset, batch_size=32, shuffle=True)
 
-    model = Model()
-    criterion = nn.CrossEntropyLoss()
-    optimizer = optim.SGD(model.parameters(), lr=0.003)
 
-    epochs = 5
-    for epoch in range(epochs):
-        running_loss = 0.0
+def train(base_model: torch.nn.Module) -> None:
+    """Trains the given model using PyTorch Lightning."""
+    
+    processed_data_path = Path("data/processed/blkjckhands_processed.csv")
 
-        for states, actions in trainloader:
-            predictions = model(states)
-            loss = criterion(predictions, actions)
+    dm = BlackjackDataModule(data_path=processed_data_path, batch_size=32)
+    task = PredictionTask(model=base_model, lr=0.003)
+ 
+    trainer = Trainer(max_epochs=5)
 
-            optimizer.zero_grad()
-            loss.backward()
-            optimizer.step()
+    # 4. Execute the training run
+    trainer.fit(task, datamodule=dm)
 
-            running_loss += loss.item()
-
-        print(f"Epoch {epoch + 1}: training loss = {running_loss / len(trainloader):.4f}")
 
 if __name__ == "__main__":
-    train()
+    from blackjack_predictor.models.ffnn import SimpleFNN
+    model = SimpleFNN()
+    train(base_model=model)
