@@ -1,4 +1,4 @@
-from torch import nn
+from torch import nn, softmax
 import torch
 
 class Model(nn.Module):
@@ -7,12 +7,12 @@ class Model(nn.Module):
         super().__init__()
         self.hidden = nn.Linear(3, 16)
         self.relu = nn.ReLU()
-        self.output = nn.Linear(16, 3)
+        self.output = nn.Linear(16, 2)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         x = self.hidden(x)
         x = self.relu(x)
-        return self.softmax(x)
+        return self.output(x)
 
 if __name__ == "__main__":
     model = Model()
