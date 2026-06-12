@@ -5,10 +5,14 @@ class Model(nn.Module):
     """Just a dummy model to show how to structure your code"""
     def __init__(self):
         super().__init__()
-        self.layer = nn.Linear(1, 1)
+        self.hidden = nn.Linear(3, 16)
+        self.relu = nn.ReLU()
+        self.output = nn.Linear(16, 3)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        return self.layer(x)
+        x = self.hidden(x)
+        x = self.relu(x)
+        return self.softmax(x)
 
 if __name__ == "__main__":
     model = Model()
