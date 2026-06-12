@@ -18,7 +18,10 @@ classifiers = [
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "dvc>=3.67.1",
+    "dvc-gdrive>=3.0.1",
     "fastapi==0.115.6",
+    "pywin32>=312",
     "torch==2.6.0",
     "typer==0.15.1",
     "uvicorn==0.34.0",
@@ -55,5 +58,3 @@ line-length = 120
 
 [tool.coverage.run]
 omit = ["tests/*"]
-    "torch>=2.12.0",
-]
