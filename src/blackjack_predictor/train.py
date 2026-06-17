@@ -1,33 +1,54 @@
 import torch
-from torch.utils.data import DataLoader
-from pytorch_lightning import Trainer
-from blackjack_predictor.data_ import BlackjackDataModule
+import hydra
+from omegaconf import DictConfig
 from pathlib import Path
+from pytorch_lightning import Trainer
+from pytorch_lightning.loggers import WandbLogger
+from blackjack_predictor.data_ import BlackjackDataModule
 from blackjack_predictor.tasks import PredictionTask
+from blackjack_predictor.models.ffnn import SimpleFNN
 
 
-MODEL_PATH = Path("models/model.pth")
+@hydra.main(config_path="configs", config_name="config", version_base=None)
+def train(cfg: DictConfig) -> None:
+    """Trains the model using parameters from Hydra config."""
 
+    model = SimpleFNN(
+        input_dim=cfg.model.input_dim,
+        hidden_dim=cfg.model.hidden_dim,
+        output_dim=cfg.model.output_dim,
+    )
 
-def train(base_model: torch.nn.Module) -> None:
-    """Trains the given model using PyTorch Lightning."""
-    
-    processed_data_path = Path("data/processed/blkjckhands_processed.csv")
+    dm = BlackjackDataModule(
+        data_path=cfg.data.processed_path,
+        batch_size=cfg.training.batch_size,
+        split_seed=cfg.training.split_seed,
+    )
 
-    dm = BlackjackDataModule(data_path=processed_data_path, batch_size=32)
-    task = PredictionTask(model=base_model, lr=0.003)
- 
-    trainer = Trainer(max_epochs=5)
+    task = PredictionTask(
+        model=model,
+        lr=cfg.training.lr,
+        num_classes=cfg.training.num_classes,
+    )
 
-    # 4. Execute the training run
+    wandb_logger = WandbLogger(
+        project="project_dtu_mlops",
+        config={
+            "batch_size": cfg.training.batch_size,
+            "learning_rate": cfg.training.lr,
+            "epochs": cfg.training.max_epochs,
+        },
+        job_type="train",
+    )
+
+    trainer = Trainer(max_epochs=cfg.training.max_epochs, logger=wandb_logger)
     trainer.fit(task, datamodule=dm)
 
+    model_path = Path(cfg.data.model_path)
+    model_path.parent.mkdir(parents=True, exist_ok=True)
+    torch.save(model.state_dict(), model_path)
+    print(f"Saved model to {model_path}")
 
-    MODEL_PATH.parent.mkdir(parents=True, exist_ok=True)
-    torch.save(model.state_dict(), MODEL_PATH)
-    print(f"Saved model to {MODEL_PATH}")
 
 if __name__ == "__main__":
-    from blackjack_predictor.models.ffnn import SimpleFNN
-    model = SimpleFNN()
-    train(base_model=model)
+    train()

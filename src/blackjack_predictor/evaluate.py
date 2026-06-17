@@ -3,20 +3,20 @@ from pathlib import Path
 import torch
 from torch.utils.data import DataLoader
 
-from blackjack_predictor.data_ import MyDataset
-from blackjack_predictor.model import Model
+from blackjack_predictor.data_ import BlackjackDataset
+from blackjack_predictor.models.ffnn import SimpleFNN
 
 
 MODEL_PATH = Path("models/model.pth")
 
 
-def evaluate(model_path: Path = MODEL_PATH, data_path: Path = Path("data/raw")) -> float:
+def evaluate(model_path: Path = MODEL_PATH, data_path: Path = Path("data/processed/blkjckhands_processed.pt")) -> float:
 	"""Load a trained model and report accuracy on the available dataset."""
 
-	dataset = MyDataset(data_path)
+	dataset = BlackjackDataset(data_path)
 	loader = DataLoader(dataset, batch_size=32, shuffle=False)
 
-	model = Model()
+	model = SimpleFNN()
 	if not model_path.exists():
 		raise FileNotFoundError(
 			f"Could not find trained model at {model_path}. Run training first."

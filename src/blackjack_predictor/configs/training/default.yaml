@@ -1,0 +1,5 @@
+lr: 0.003
+max_epochs: 5
+batch_size: 32
+split_seed: 42
+num_classes: 2

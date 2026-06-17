@@ -192,3 +192,8 @@ uv.lock
 
 #lightning
 lightning_logs/
+
+
+/wandb/
+/outputs/
+/project_dtu_mlops/

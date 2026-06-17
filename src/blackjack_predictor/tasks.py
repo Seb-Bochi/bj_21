@@ -10,6 +10,7 @@ class PredictionTask(LightningModule):
         self.model = model
         self.lr = lr
         self.criterion = torch.nn.CrossEntropyLoss()
+        self.train_acc = MulticlassAccuracy(num_classes=num_classes)
         self.val_acc = MulticlassAccuracy(num_classes=num_classes)
         self.test_acc = self.val_acc.clone()  # Use the same metric for test accuracy
 
@@ -19,10 +20,10 @@ class PredictionTask(LightningModule):
     def training_step(self, batch, batch_idx):
         x, y = batch
         logits = self(x)
-        
         loss = self.criterion(logits, y)
-        
+        self.train_acc(logits, y)
         self.log("train_loss", loss, on_epoch=True, prog_bar=True)
+        self.log("train_acc", self.train_acc, on_epoch=True, prog_bar=True)
         return loss
     
     def validation_step(self, batch, batch_idx):
