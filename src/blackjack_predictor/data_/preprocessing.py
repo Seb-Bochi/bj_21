@@ -1,10 +1,9 @@
-
 from pathlib import Path
 import torch
 import pandas as pd
 
 
-def preprocess(data_path: str, output_folder: Path, target_column: str = 'winloss') -> None:
+def preprocess(data_path: str, output_folder: Path, target_column: str = "winloss") -> None:
     """Blackjack dataset for win/loss prediction."""
 
     data_path = Path(data_path)
@@ -15,9 +14,19 @@ def preprocess(data_path: str, output_folder: Path, target_column: str = 'winlos
         df = df.drop(df.columns[0], axis=1)
 
     feature_columns = [
-        "card1", "card2", "card3", "card4", "card5", "sumofcards",
-        "dealcard1", "dealcard2", "dealcard3", "dealcard4", "dealcard5",
-        "sumofdeal", "ply2cardsum",
+        "card1",
+        "card2",
+        "card3",
+        "card4",
+        "card5",
+        "sumofcards",
+        "dealcard1",
+        "dealcard2",
+        "dealcard3",
+        "dealcard4",
+        "dealcard5",
+        "sumofdeal",
+        "ply2cardsum",
     ]
 
     df = df[feature_columns + [target_column]].copy()
@@ -32,6 +41,7 @@ def preprocess(data_path: str, output_folder: Path, target_column: str = 'winlos
     output_path.parent.mkdir(parents=True, exist_ok=True)
     torch.save({"X": X, "y": y}, output_path)
     print(f"Saved {len(y)} samples to {output_path}")
+
 
 if __name__ == "__main__":
     import argparse

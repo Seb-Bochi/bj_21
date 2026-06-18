@@ -2,9 +2,10 @@ import torch
 from pytorch_lightning import LightningModule
 from torchmetrics.classification import MulticlassAccuracy
 
+
 class PredictionTask(LightningModule):
     """A Lightning wrapper that can take any standard PyTorch model."""
-    
+
     def __init__(self, model: torch.nn.Module, lr: float = 0.003, num_classes: int = 2):
         super().__init__()
         self.model = model
@@ -25,7 +26,7 @@ class PredictionTask(LightningModule):
         self.log("train_loss", loss, on_epoch=True, prog_bar=True)
         self.log("train_acc", self.train_acc, on_epoch=True, prog_bar=True)
         return loss
-    
+
     def validation_step(self, batch, batch_idx):
         x, y = batch
         logits = self(x)
@@ -38,9 +39,9 @@ class PredictionTask(LightningModule):
         x, y = batch
         logits = self(x)
         loss = self.criterion(logits, y)
-    
+
         self.test_acc(logits, y)
-        
+
         self.log("test_loss", loss, prog_bar=True)
         self.log("test_acc", self.test_acc, prog_bar=True)
 

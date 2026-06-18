@@ -4,6 +4,7 @@ from torch.utils.data import DataLoader, random_split
 from pytorch_lightning import LightningDataModule
 from blackjack_predictor.data_ import BlackjackDataset
 
+
 class BlackjackDataModule(LightningDataModule):
     """DataModule for Blackjack win/loss prediction."""
 
@@ -20,7 +21,7 @@ class BlackjackDataModule(LightningDataModule):
 
     def setup(self, stage: str | None = None) -> None:
         """Load data and split into train, val, and test sets."""
-        
+
         full_dataset = BlackjackDataset(self.data_path)
 
         total_len = len(full_dataset)
@@ -30,17 +31,14 @@ class BlackjackDataModule(LightningDataModule):
 
         generator = torch.Generator().manual_seed(self.split_seed)
         self.train_dataset, self.val_dataset, self.test_dataset = random_split(
-            full_dataset, 
-            [train_size, val_size, test_size], 
-            generator=generator
+            full_dataset, [train_size, val_size, test_size], generator=generator
         )
-        
 
     def train_dataloader(self):
         return DataLoader(self.train_dataset, batch_size=self.batch_size, shuffle=True)
-    
+
     def val_dataloader(self):
         return DataLoader(self.val_dataset, batch_size=self.batch_size, shuffle=False)
-    
+
     def test_dataloader(self):
         return DataLoader(self.test_dataset, batch_size=self.batch_size, shuffle=False)

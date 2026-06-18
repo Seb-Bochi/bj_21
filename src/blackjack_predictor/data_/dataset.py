@@ -5,13 +5,14 @@ import pandas as pd
 import torch
 from torch.utils.data import Dataset
 
+
 class BlackjackDataset(Dataset):
     """Dataset for Blackjack win/loss prediction loading and processing from a CSV file."""
 
     def __init__(self, data_dir="data/raw", transform=None):
         super().__init__()
         self.transform = transform
-        
+
         data_dir = Path(data_dir)
         csv_path = data_dir / "blkjckhands.csv"
 
@@ -38,21 +39,28 @@ class BlackjackDataset(Dataset):
 
         # Load file
         df = pd.read_csv(csv_path)
-        
+
         # Filter "Push" outcomes
         if "winloss" in df.columns:
             df = df[df["winloss"] != "Push"]
 
         # Drop non-feature/target columns to arrive at exactly 13 features
         cols_to_drop = [
-            "", "PlayerNo", "winloss", "plybustbeat", "dlbustbeat", 
-            "blkjck", "sumofcards", "sumofdeal", "plwinamt"
+            "",
+            "PlayerNo",
+            "winloss",
+            "plybustbeat",
+            "dlbustbeat",
+            "blkjck",
+            "sumofcards",
+            "sumofdeal",
+            "plwinamt",
         ]
         feature_cols = [c for c in df.columns if c not in cols_to_drop]
 
         # Binary classification mapping
         label_map = {"Win": 1, "Loss": 0}
-        
+
         self.X = torch.tensor(df[feature_cols].values, dtype=torch.float32)
         self.y = torch.tensor(df["winloss"].map(label_map).values, dtype=torch.long)
 
@@ -75,7 +83,7 @@ class BlackjackDataset(Dataset):
     def preprocess(self, output_folder):
         output_folder = Path(output_folder)
         output_folder.mkdir(parents=True, exist_ok=True)
-        
+
         processed_df = pd.DataFrame(self.X.numpy())
         processed_df["label"] = self.y.numpy()
         processed_df.to_csv(output_folder / "processed.csv", index=False)

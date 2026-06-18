@@ -59,7 +59,9 @@ def docker_build(ctx: Context, progress: str = "plain") -> None:
 @task
 def build_docs(ctx: Context) -> None:
     """Build documentation."""
-    ctx.run(f"{uv_command()} run mkdocs build --config-file docs/mkdocs.yaml --site-dir build", echo=True, pty=not WINDOWS)
+    ctx.run(
+        f"{uv_command()} run mkdocs build --config-file docs/mkdocs.yaml --site-dir build", echo=True, pty=not WINDOWS
+    )
 
 
 @task
