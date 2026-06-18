@@ -1,6 +1,6 @@
 defaults:
-  - model: default
-  - training: default
-  - data: default
-  - profiling: default
+  - model_config: default
+  - training_config: default
+  - data_config: default
+  - profiling_config: default
   - _self_

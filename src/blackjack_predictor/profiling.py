@@ -8,10 +8,10 @@ from blackjack_predictor.models.ffnn import SimpleFNN
 
 @hydra.main(config_path="configs", config_name="config", version_base=None)
 def run_profiling(cfg: DictConfig) -> None:
-    data_path=cfg.profiling.data_path
-    num_batches=cfg.profiling.num_batches
-    batch_size=cfg.profiling.batch_size
-    row_limit=cfg.profiling.row_limit
+    data_path=cfg.profiling_config.data_path
+    num_batches=cfg.profiling_config.num_batches
+    batch_size=cfg.profiling_config.batch_size
+    row_limit=cfg.profiling_config.row_limit
 
     model = SimpleFNN()
     model.eval()

@@ -1,0 +1,4 @@
+raw_path: data/raw/blkjckhands.csv
+processed_path: data/processed/blkjckhands_processed.pt
+model_path: models/model.pth
+target_column: winloss
