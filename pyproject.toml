@@ -67,7 +67,11 @@ explicit = true
 line-length = 120
 
 [tool.coverage.run]
-omit = ["tests/*"]
+omit = ["tests/*", "/tmp/*"]
+disable_warnings = ["no-data-collected", "module-not-measured"]
+
+[tool.coverage.report]
+ignore_errors = true
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]
