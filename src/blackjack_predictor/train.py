@@ -38,8 +38,10 @@ def train(cfg: DictConfig) -> None:
             "learning_rate": cfg.training_config.lr,
             "epochs": cfg.training_config.max_epochs,
         },
+        group=model.__class__.__name__,
+        name=f"{model.__class__.__name__}_train",
         job_type="train",
-    )
+    )   
 
     trainer = Trainer(max_epochs=cfg.training_config.max_epochs, logger=wandb_logger)
     trainer.fit(task, datamodule=dm)
