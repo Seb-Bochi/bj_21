@@ -5,7 +5,8 @@ import pandas as pd
 import pytest
 from torch.utils.data import Dataset
 
-from blackjack_predictor.data import MyDataset
+# Importing the correct class name from your module
+from blackjack_predictor.data_ import BlackjackDataset
 
 
 def _write_sample_csv(folder: Path) -> Path:
@@ -50,7 +51,7 @@ def test_my_dataset_loads_and_filters_push(tmp_path):
     """Test that the dataset loads and removes Push outcomes."""
     _write_sample_csv(tmp_path / "data" / "raw")
 
-    dataset = MyDataset(tmp_path / "data" / "raw")
+    dataset = BlackjackDataset(tmp_path / "data" / "raw")
     assert isinstance(dataset, Dataset)
     assert len(dataset) == 2
 
@@ -63,7 +64,7 @@ def test_my_dataset_finds_csv_in_repo_root(tmp_path):
     """Test that the dataset falls back to the repository root CSV path."""
     _write_sample_csv(tmp_path)
 
-    dataset = MyDataset(tmp_path / "data" / "raw")
+    dataset = BlackjackDataset(tmp_path / "data" / "raw")
     assert len(dataset) == 2
 
 
@@ -71,7 +72,7 @@ def test_preprocess_writes_processed_file(tmp_path):
     """Test that preprocess writes a CSV to the output folder."""
     _write_sample_csv(tmp_path / "data" / "raw")
 
-    dataset = MyDataset(tmp_path / "data" / "raw")
+    dataset = BlackjackDataset(tmp_path / "data" / "raw")
     output_folder = tmp_path / "data" / "processed"
 
     dataset.preprocess(output_folder)
@@ -84,7 +85,7 @@ def test_preprocess_writes_processed_file(tmp_path):
 def test_my_dataset_raises_when_csv_is_missing(tmp_path):
     """Test that a missing CSV raises a helpful error."""
     with pytest.raises(FileNotFoundError, match="blkjckhands.csv"):
-        MyDataset(tmp_path / "data" / "raw")
+        BlackjackDataset(tmp_path / "data" / "raw")
 
 
 def test_my_dataset_downloads_from_google_drive(tmp_path, monkeypatch):
@@ -101,7 +102,7 @@ def test_my_dataset_downloads_from_google_drive(tmp_path, monkeypatch):
     monkeypatch.delenv("BLACKJACK_GDRIVE_URL", raising=False)
     monkeypatch.setattr(gdown, "download", fake_download)
 
-    dataset = MyDataset(tmp_path / "data" / "raw")
+    dataset = BlackjackDataset(tmp_path / "data" / "raw")
 
     assert len(dataset) == 2
     assert downloaded_rows
