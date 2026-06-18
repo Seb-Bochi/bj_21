@@ -18,9 +18,10 @@ def uv_command() -> str:
 
 # Project commands
 @task
-def preprocess_data(ctx: Context) -> None:
-    """Preprocess data."""
-    ctx.run(f"{uv_command()} run src/{PROJECT_NAME}/data.py data/raw data/processed", echo=True, pty=not WINDOWS)
+def preprocess_data(ctx):
+    """Preprocesses the raw CSV into a 3-column tensor."""
+    # We point directly to your new, filtered script
+    ctx.run("python src/blackjack_predictor/data_/preprocessing.py")
 
 
 @task

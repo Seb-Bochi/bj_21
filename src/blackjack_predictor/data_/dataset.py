@@ -5,18 +5,15 @@ class BlackjackDataset(Dataset):
     """Dataset for Blackjack win/loss prediction loading from a processed .pt file."""
 
     def __init__(self, processed_file="data/processed/blkjckhands_processed.pt", transform=None):
-            super().__init__()
-            self.transform = transform
+        super().__init__()
+        self.transform = transform
 
-            data = torch.load(processed_file, weights_only=True)
-            
-            # ======================= THE FIX =======================
-            # Slice the tensor to only keep the 3 required columns:
-            # Index 0 (card1), Index 1 (card2), and Index 6 (dealcard1)
-            self.X = data["X"][:, [0, 1, 6]] 
-            # =======================================================
-            
-            self.y = data["y"]
+        data = torch.load(processed_file, weights_only=True)
+        
+        # We removed the [:, [0, 1, 6]] slice because preprocessing.py 
+        # already filters the tensor down to the exact 3 features we need!
+        self.X = data["X"] 
+        self.y = data["y"]
 
     @property
     def labels(self):
