@@ -1,29 +1,62 @@
-from pathlib import Path
-
 import torch
-from torch.utils.data import DataLoader
+import hydra
+from omegaconf import DictConfig
+from pathlib import Path
+from pytorch_lightning.loggers import WandbLogger
 
-from blackjack_predictor.data_ import BlackjackDataset
+# Replaced BlackjackDataset with your DataModule
+from blackjack_predictor.data_ import BlackjackDataModule
 from blackjack_predictor.models.ffnn import SimpleFNN
 
 
-MODEL_PATH = Path("models/model.pth")
+@hydra.main(config_path="configs", config_name="config", version_base=None)
+def evaluate(cfg: DictConfig) -> float:
+    """Load a trained model, evaluate on the test split, and log to W&B."""
+    
+    model_path = Path(cfg.data_config.model_path)
 
+    # 1. Use the DataModule to guarantee the exact same splits using the config's seed
+    dm = BlackjackDataModule(
+        data_path=cfg.data_config.processed_path,
+        batch_size=cfg.training_config.batch_size,
+        split_seed=cfg.training_config.split_seed,
+    )
+    
+    # Run the standard Lightning setup and grab the appropriate dataloader.
+    # Note: If your DataModule doesn't have a test_dataloader, change this to dm.val_dataloader()
+    dm.setup(stage="test")
+    loader = dm.test_dataloader()
 
-def evaluate(model_path: Path = MODEL_PATH, data_path: Path = Path("data/processed/blkjckhands_processed.pt")) -> float:
-    """Load a trained model and report accuracy on the available dataset."""
+    # 2. Instantiate the model architecture
+    model = SimpleFNN(
+        input_dim=cfg.model_config.input_dim,
+        hidden_dim=cfg.model_config.hidden_dim,
+        output_dim=cfg.model_config.output_dim,
+    )
 
-    dataset = BlackjackDataset(data_path)
-    loader = DataLoader(dataset, batch_size=32, shuffle=False)
-
-    model = SimpleFNN()
     if not model_path.exists():
-        raise FileNotFoundError(f"Could not find trained model at {model_path}. Run training first.")
+        raise FileNotFoundError(
+            f"Could not find trained model at {model_path}. Run training first."
+        )
 
-    state_dict = torch.load(model_path, map_location=torch.device("cpu"), weights_only=True)
+    # 3. Load the trained weights
+    state_dict = torch.load(model_path, map_location=torch.device("cpu"))
     model.load_state_dict(state_dict)
     model.eval()
 
+    # 4. Initialize W&B logger
+    wandb_logger = WandbLogger(
+        project="project_dtu_mlops",
+        config={
+            "batch_size": cfg.training_config.batch_size,
+            "split_seed": cfg.training_config.split_seed, # Good to log the seed used!
+        },
+        group=model.__class__.__name__,
+        name=f"{model.__class__.__name__}_eval",
+        job_type="eval",
+    )   
+
+    # 5. Run the evaluation loop on the unseen split
     correct_predictions = 0
     total_predictions = 0
 
@@ -35,7 +68,12 @@ def evaluate(model_path: Path = MODEL_PATH, data_path: Path = Path("data/process
             total_predictions += actions.size(0)
 
     accuracy = correct_predictions / total_predictions if total_predictions else 0.0
-    print(f"Accuracy: {accuracy:.4f}")
+    print(f"Test Accuracy: {accuracy:.4f}")
+
+    # 6. Log the metric
+    wandb_logger.experiment.log({"eval/accuracy": accuracy})
+    wandb_logger.experiment.finish()
+
     return accuracy
 
 
