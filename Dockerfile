@@ -1,4 +1,4 @@
-FROM ghcr.io/astral-sh/uv:python3.12-alpine AS base
+FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim AS base
 
 ENV PORT=8080
 
@@ -11,6 +11,8 @@ COPY src src/
 COPY README.md README.md
 COPY LICENSE LICENSE
 COPY models models/
+
+COPY data data/
 
 RUN uv sync --frozen
 
