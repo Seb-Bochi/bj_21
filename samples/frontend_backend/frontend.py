@@ -1,63 +1,97 @@
+"""Streamlit frontend for blackjack predictions."""
+
 import os
-import pandas as pd
+from typing import Any
+
 import requests
 import streamlit as st
+"""Entry point for the blackjack prediction API."""
 
+from blackjack_predictor.api import app
+
+__all__ = ["app"]
 
 def get_backend_url() -> str:
-    """Get the URL of the backend service."""
-    return os.environ.get("BACKEND", "http://127.0.0.1:8000")
+    """Return the configured backend URL."""
+    return os.environ.get("BACKEND", "http://127.0.0.1:8000").rstrip("/")
 
 
-def classify_image(image, backend):
-    """Send the image to the backend for classification."""
-    predict_url = f"{backend.rstrip('/')}/classify/"
+def predict(
+    player_card_1: int,
+    player_card_2: int,
+    dealer_card: int,
+) -> dict[str, Any]:
+    """Request a prediction from the backend."""
     response = requests.post(
-        predict_url,
-        files={"file": ("image.jpg", image, "image/jpeg")},
+        f"{get_backend_url()}/predict",
+        json={
+            "dealt_card_1": player_card_1,
+            "dealt_card_2": player_card_2,
+            "dealer_card": dealer_card,
+        },
         timeout=60,
     )
     response.raise_for_status()
     return response.json()
 
+
 def main() -> None:
-    """Main function of the Streamlit frontend."""
-    backend = get_backend_url()
-    if backend is None:
-        msg = "Backend service not found"
-        raise ValueError(msg)
+    """Render the blackjack prediction interface."""
+    st.title("Blackjack Outcome Predictor")
+    st.write("Enter the player's two cards and the dealer's visible card.")
+    st.caption(
+    "The model estimates win or loss from the player's first two cards "
+    "and the dealer's visible card. It does not recommend whether to hit or stand."
+)
 
-    st.title("Image Classification")
+    player_card_1 = st.selectbox(
+        "Player card 1",
+        options=range(1, 12),
+        format_func=format_card,
+    )
+    player_card_2 = st.selectbox(
+        "Player card 2",
+        options=range(1, 12),
+        format_func=format_card,
+    )
+    dealer_card = st.selectbox(
+        "Dealer visible card",
+        options=range(1, 12),
+        format_func=format_card,
+    )
 
-    uploaded_file = st.file_uploader("Upload an image", type=["jpg", "jpeg", "png"])
+    if st.button("Predict outcome", type="primary"):
+        try:
+            result = predict(player_card_1, player_card_2, dealer_card)
+        except requests.RequestException as error:
+            st.error(f"Prediction request failed: {error}")
+            return
 
-    if uploaded_file is not None:
-        image = uploaded_file.read()
-        result = classify_image(image, backend=backend)
+        prediction = "Win" if result["prediction"] else "Loss"
+        st.subheader(f"Predicted outcome: {prediction}")
 
-        if result is not None:
-            prediction = result["prediction"]
-            probabilities = result["probabilities"][0]
-            top_indices = sorted(
-                range(len(probabilities)),
-                key=probabilities.__getitem__,
-                reverse=True,
-            )[:10]
+        col1, col2 = st.columns(2)
+        col1.metric("Win probability", f"{result['win_probability']:.1%}")
+        col2.metric("Loss probability", f"{result['loss_probability']:.1%}")
 
-            data = {
-                "Class": [f"Class {index}" for index in top_indices],
-                "Probability": [probabilities[index] for index in top_indices],
-            }
-            # show the image and prediction
-            st.image(image, caption="Uploaded Image")
-            st.write("Prediction:", prediction)
+        st.bar_chart(
+            {
+                "Loss": result["loss_probability"],
+                "Win": result["win_probability"],
+            },
+            horizontal=True,
+        )
 
-            # make a nice bar chart
-            df = pd.DataFrame(data)
-            df.set_index("Class", inplace=True)
-            st.bar_chart(df, y="Probability")
-        else:
-            st.write("Failed to get prediction")
+
+def format_card(value: int) -> str:
+    """Return a readable card label."""
+    if value == 1:
+        return "Ace (1)"
+    if value == 11:
+        return "Ace (11)"
+    if value == 10:
+        return "10 / face card"
+    return str(value)
 
 
 if __name__ == "__main__":
