@@ -1,30 +1,36 @@
 import os
-from typing import Annotated
+from typing import Annotated, Optional
 import wandb
 import typer
 
 
 def link_model(
-    artifact_path: str,
+    artifact_path: Optional[str] = typer.Argument(default=None),
     aliases: Annotated[list[str], typer.Option("--aliases")] = ["staging"],
 ) -> None:
-    """Add aliases to a model artifact in the W&B registry."""
-    if artifact_path == "":
-        typer.echo("No artifact path provided. Exiting.")
-        return
+    """Add aliases to a model already in the W&B registry.
 
-    api_key = os.getenv("WANDB_API_KEY")
-    wandb.login(key=api_key, relogin=True)
-
+    If artifact_path is not provided, looks up the latest 'staging' artifact
+    from the registry using WANDB_ORG and WANDB_COLLECTION env vars.
+    """
+    wandb.login(key=os.getenv("WANDB_API_KEY"), relogin=True)
     api = wandb.Api()
-    _, _, artifact_name_version = artifact_path.split("/")
-    artifact_name, _ = artifact_name_version.split(":")
+
+    if not artifact_path:
+        org = os.getenv("WANDB_ORG")
+        collection = os.getenv("WANDB_COLLECTION", "model_worflow")
+        registry = os.getenv("WANDB_REGISTRY", "wandb-registry-models")
+        artifact_path = f"{org}/{registry}/{collection}:staging"
+        typer.echo(f"No artifact path provided, using: {artifact_path}")
 
     artifact = api.artifact(artifact_path)
-    target_path = f"{os.getenv('WANDB_ENTITY')}/wandb-registry-model/{artifact_name}"
-    artifact.link(target_path=target_path, aliases=aliases)
+
+    for alias in aliases:
+        if alias not in artifact.aliases:
+            artifact.aliases.append(alias)
     artifact.save()
-    typer.echo(f"Artifact {artifact_path} linked to {aliases}")
+
+    typer.echo(f"Added aliases {aliases} to {artifact_path}")
 
 
 if __name__ == "__main__":
