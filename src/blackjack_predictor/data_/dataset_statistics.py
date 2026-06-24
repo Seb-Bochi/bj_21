@@ -4,7 +4,7 @@ from pathlib import Path
 from blackjack_predictor.data_.dataset import BlackjackDataset
 
 EXPECTED_SIZE = 815767
-EXPECTED_FEATURES = 13
+EXPECTED_FEATURES = 3
 
 
 def dataset_statistics(
