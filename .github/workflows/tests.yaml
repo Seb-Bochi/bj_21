@@ -39,5 +39,5 @@ jobs:
 
       - name: Run tests & coverage
         run: |
-          uv run coverage run -m pytest tests/test_model.py::test_model_forward_shape tests/test_data.py
+          uv run coverage run -m pytest 
           uv run coverage report -m
