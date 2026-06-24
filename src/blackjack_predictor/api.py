@@ -113,8 +113,8 @@ async def predict(payload: InferenceRequest):
     input_features = [payload.dealt_card_1, payload.dealt_card_2, payload.dealer_card]
     if len(input_features) != cfg.model_config.input_dim:
         raise HTTPException(
-            status_code=422, 
-            detail=f"Dimension mismatch. Model requires {cfg.model_config.input_dim} features, received {len(input_features)}."
+            status_code=422,
+            detail=f"Dimension mismatch. Model requires {cfg.model_config.input_dim} features, received {len(input_features)}.",
         )
 
     # Transform numerical array into a 2D float tensor batch layer
@@ -233,4 +233,5 @@ def health_check():
 
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run("api:app", host="localhost", port=8000, reload=True)

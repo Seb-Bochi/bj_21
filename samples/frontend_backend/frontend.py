@@ -10,6 +10,7 @@ from blackjack_predictor.api import app
 
 __all__ = ["app"]
 
+
 def get_backend_url() -> str:
     """Return the configured backend URL."""
     return os.environ.get("BACKEND", "http://127.0.0.1:8000").rstrip("/")
@@ -39,9 +40,9 @@ def main() -> None:
     st.title("Blackjack Outcome Predictor")
     st.write("Enter the player's two cards and the dealer's visible card.")
     st.caption(
-    "The model estimates win or loss from the player's first two cards "
-    "and the dealer's visible card. It does not recommend whether to hit or stand."
-)
+        "The model estimates win or loss from the player's first two cards "
+        "and the dealer's visible card. It does not recommend whether to hit or stand."
+    )
 
     player_card_1 = st.selectbox(
         "Player card 1",
