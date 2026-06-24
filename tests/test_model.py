@@ -40,7 +40,7 @@ def model_from_registry(tmp_path):
 
 def test_model_speed(model_from_registry):
     """Test that 100 forward passes on the registry model complete within the time limit."""
-    x = torch.rand(1, 13)
+    x = torch.rand(1, 3)
 
     start = time.time()
     with torch.no_grad():
