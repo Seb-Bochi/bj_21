@@ -1,0 +1,47 @@
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  run_data_checker:
+    name: Check data statistics
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+    - name: Checkout data
+      uses: actions/checkout@v4
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
+      with:
+        enable-cache: true
+        python-version: "3.12"
+
+    - name: Install dependencies
+      run: |
+        uv sync --locked --dev
+
+    - name: Auth with GCP
+      uses: google-github-actions/auth@v2
+      with:
+        credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+    - name: Pull data
+      run: |
+        uv run dvc pull --remote remote_storage --no-run-cache
+
+    - name: Check data statistics & generate report
+      run: |
+        uv run python src/blackjack_predictor/data_/dataset_statistics.py
+
+    - name: Setup CML
+      uses: iterative/setup-cml@v3
+
+    - name: Comment on PR
+      env:
+        REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        cml comment create report.md --watermark-title="Data Checker"

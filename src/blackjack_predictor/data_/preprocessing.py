@@ -14,9 +14,19 @@ def preprocess(data_path: str, output_folder: Path, target_column: str = "winlos
         df = df.drop(df.columns[0], axis=1)
 
     feature_columns = [
-        "card1", 
+        "card1",
         "card2",
+        "card3",
+        "card4",
+        "card5",
+        "sumofcards",
         "dealcard1",
+        "dealcard2",
+        "dealcard3",
+        "dealcard4",
+        "dealcard5",
+        "sumofdeal",
+        "ply2cardsum",
     ]
 
     df = df[feature_columns + [target_column]].copy()

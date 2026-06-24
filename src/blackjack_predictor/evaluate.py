@@ -9,10 +9,10 @@ from blackjack_predictor.data_ import BlackjackDataModule
 from blackjack_predictor.models.ffnn import SimpleFNN
 
 
-@hydra.main(config_path="configs", config_name="config", version_base=None)
+@hydra.main(config_path="../../configs", config_name="config", version_base=None)
 def evaluate(cfg: DictConfig) -> float:
     """Load a trained model, evaluate on the test split, and log to W&B."""
-    
+
     model_path = Path(cfg.data_config.model_path)
 
     # 1. Use the DataModule to guarantee the exact same splits using the config's seed
@@ -21,7 +21,7 @@ def evaluate(cfg: DictConfig) -> float:
         batch_size=cfg.training_config.batch_size,
         split_seed=cfg.training_config.split_seed,
     )
-    
+
     # Run the standard Lightning setup and grab the appropriate dataloader.
     # Note: If your DataModule doesn't have a test_dataloader, change this to dm.val_dataloader()
     dm.setup(stage="test")
@@ -35,9 +35,7 @@ def evaluate(cfg: DictConfig) -> float:
     )
 
     if not model_path.exists():
-        raise FileNotFoundError(
-            f"Could not find trained model at {model_path}. Run training first."
-        )
+        raise FileNotFoundError(f"Could not find trained model at {model_path}. Run training first.")
 
     # 3. Load the trained weights
     state_dict = torch.load(model_path, map_location=torch.device("cpu"))
@@ -49,12 +47,12 @@ def evaluate(cfg: DictConfig) -> float:
         project="project_dtu_mlops",
         config={
             "batch_size": cfg.training_config.batch_size,
-            "split_seed": cfg.training_config.split_seed, # Good to log the seed used!
+            "split_seed": cfg.training_config.split_seed,  # Good to log the seed used!
         },
         group=model.__class__.__name__,
         name=f"{model.__class__.__name__}_eval",
         job_type="eval",
-    )   
+    )
 
     # 5. Run the evaluation loop on the unseen split
     correct_predictions = 0

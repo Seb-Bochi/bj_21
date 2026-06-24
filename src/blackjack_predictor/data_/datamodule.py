@@ -8,11 +8,12 @@ from blackjack_predictor.data_ import BlackjackDataset
 class BlackjackDataModule(LightningDataModule):
     """DataModule for Blackjack win/loss prediction."""
 
-    def __init__(self, data_path: Path, batch_size: int = 32, split_seed: int = 42) -> None:
+    def __init__(self, data_path: Path, batch_size: int = 32, split_seed: int = 42, num_workers: int = 4) -> None:
         super().__init__()
         self.data_path = Path(data_path)
         self.batch_size = batch_size
         self.split_seed = split_seed
+        self.num_workers = num_workers
 
         # Initialize dataset attributes
         self.train_dataset = None
@@ -37,28 +38,29 @@ class BlackjackDataModule(LightningDataModule):
     # ==================== M29: DISTRIBUTED DATA LOADING ====================
     def train_dataloader(self):
         return DataLoader(
-            self.train_dataset, 
-            batch_size=self.batch_size, 
+            self.train_dataset,
+            batch_size=self.batch_size,
             shuffle=True,
-            num_workers=4,
-            persistent_workers=True
+            num_workers=self.num_workers,
+            persistent_workers=True,
         )
 
     def val_dataloader(self):
         return DataLoader(
-            self.val_dataset, 
-            batch_size=self.batch_size, 
+            self.val_dataset,
+            batch_size=self.batch_size,
             shuffle=False,
-            num_workers=4,
-            persistent_workers=True
+            num_workers=self.num_workers,
+            persistent_workers=True,
         )
 
     def test_dataloader(self):
         return DataLoader(
-            self.test_dataset, 
-            batch_size=self.batch_size, 
+            self.test_dataset,
+            batch_size=self.batch_size,
             shuffle=False,
-            num_workers=4,
-            persistent_workers=True
+            num_workers=self.num_workers,
+            persistent_workers=True,
         )
+
     # =======================================================================

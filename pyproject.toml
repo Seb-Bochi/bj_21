@@ -18,13 +18,15 @@ classifiers = [
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "dvc[gdrive]>=3.67.1",
+    "dvc[gdrive,gs]>=3.67.1",
     "dvc-gdrive>=3.0.1",
-    "fastapi>=0.116.1",
+    "dvc-gs>=3.0.0",
+    "fastapi>=0.116.0",
     "gdown==5.2.0",
     "pandas==3.0.3",
     "pytorch-lightning>=2.6.5",
     "torch==2.6.0",
+    "torchvision==0.21.0",
     "typer==0.15.1",
     "uvicorn==0.34.0",
     "pep8>=1.7.1",
@@ -36,7 +38,6 @@ dependencies = [
     "python-multipart>=0.0.32",
     "streamlit>=1.58.0",
     "requests>=2.34.2",
-    "starlette>=0.47.2",
 ]
 
 [dependency-groups]

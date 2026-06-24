@@ -7,7 +7,7 @@ from blackjack_predictor.data_.dataset import BlackjackDataset
 from blackjack_predictor.models.ffnn import SimpleFNN
 
 
-@hydra.main(config_path="configs", config_name="config", version_base=None)
+@hydra.main(config_path="../../configs", config_name="config", version_base=None)
 def run_profiling(cfg: DictConfig) -> None:
     data_path = cfg.profiling_config.data_path
     num_batches = cfg.profiling_config.num_batches
