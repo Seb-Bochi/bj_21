@@ -22,13 +22,8 @@ def model_from_registry(tmp_path):
     if model_name is None:
         pytest.skip("WANDB_MODEL_NAME environment variable not set")
 
-    api = wandb.Api(
-        api_key=os.getenv("WANDB_API_KEY"),
-        overrides={
-            "entity": os.getenv("WANDB_ENTITY"),
-            "project": os.getenv("WANDB_PROJECT"),
-        },
-    )
+    wandb.login(key=os.getenv("WANDB_API_KEY"))
+    api = wandb.Api()
 
     artifact = api.artifact(model_name)
     artifact.download(root=str(tmp_path))
