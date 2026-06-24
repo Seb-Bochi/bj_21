@@ -94,4 +94,4 @@ jobs:
 
     - name: Add production alias
       run: |
-        uv run python tests/test_production.py $WANDB_MODEL_NAME -a production
+        uv run python tests/test_production.py $WANDB_MODEL_NAME --aliases production

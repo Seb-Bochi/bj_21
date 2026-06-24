@@ -9,7 +9,7 @@ from blackjack_predictor.models.ffnn import SimpleFNN
 
 def test_model_forward_shape():
     """Test that the model returns a two-class output."""
-    model = SimpleFNN(input_dim=13, hidden_dim=64, output_dim=2)
+    model = SimpleFNN(input_dim=3, hidden_dim=64, output_dim=2)
     output = model(torch.rand(4, 13))
 
     assert output.shape == (4, 2)
@@ -22,14 +22,17 @@ def model_from_registry(tmp_path):
     if model_name is None:
         pytest.skip("WANDB_MODEL_NAME environment variable not set")
 
-    wandb.login(key=os.getenv("WANDB_API_KEY"))
+    api_key = os.getenv("WANDB_API_KEY")
+    if api_key is None:
+        pytest.skip("WANDB_API_KEY environment variable not set")
+    wandb.login(key=api_key, relogin=True)
     api = wandb.Api()
 
     artifact = api.artifact(model_name)
     artifact.download(root=str(tmp_path))
     model_file = next(tmp_path.iterdir())
 
-    model = SimpleFNN(input_dim=13, hidden_dim=128, output_dim=2)
+    model = SimpleFNN(input_dim=3, hidden_dim=128, output_dim=2)
     model.load_state_dict(torch.load(model_file, map_location="cpu", weights_only=True))
     model.eval()
     return model

@@ -1,21 +1,22 @@
 import os
+from typing import Annotated
 import wandb
 import typer
 
 
-def link_model(artifact_path: str, aliases: list[str] = ["staging"]) -> None:
+def link_model(
+    artifact_path: str,
+    aliases: Annotated[list[str], typer.Option("--aliases")] = ["staging"],
+) -> None:
     """Add aliases to a model artifact in the W&B registry."""
     if artifact_path == "":
         typer.echo("No artifact path provided. Exiting.")
         return
 
-    api = wandb.Api(
-        api_key=os.getenv("WANDB_API_KEY"),
-        overrides={
-            "entity": os.getenv("WANDB_ENTITY"),
-            "project": os.getenv("WANDB_PROJECT"),
-        },
-    )
+    api_key = os.getenv("WANDB_API_KEY")
+    wandb.login(key=api_key, relogin=True)
+
+    api = wandb.Api()
     _, _, artifact_name_version = artifact_path.split("/")
     artifact_name, _ = artifact_name_version.split(":")
 
