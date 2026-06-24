@@ -21,11 +21,8 @@ def link_model(
     artifact_name, _ = artifact_name_version.split(":")
 
     artifact = api.artifact(artifact_path)
-    artifact.link(
-        target_path=f"{os.getenv('WANDB_ENTITY')}/model-registry/{artifact_name}",
-        aliases=aliases,
-    )
-    artifact.save()
+    target_path = f"{os.getenv('WANDB_ENTITY')}/wandb-registry-model/{artifact_name}"
+    api.link_artifact(artifact, target_path=target_path, aliases=aliases)
     typer.echo(f"Artifact {artifact_path} linked to {aliases}")
 
 
