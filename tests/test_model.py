@@ -22,7 +22,10 @@ def model_from_registry(tmp_path):
     if model_name is None:
         pytest.skip("WANDB_MODEL_NAME environment variable not set")
 
-    wandb.login(key=os.getenv("WANDB_API_KEY"))
+    api_key = os.getenv("WANDB_API_KEY")
+    if api_key is None:
+        pytest.skip("WANDB_API_KEY environment variable not set")
+    wandb.login(key=api_key, relogin=True)
     api = wandb.Api()
 
     artifact = api.artifact(model_name)
