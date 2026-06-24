@@ -318,6 +318,10 @@ dependencies = [
     { name = "python-multipart" },
     { name = "pytorch-lightning" },
     { name = "requests" },
+<<<<<<< HEAD
+=======
+    { name = "starlette" },
+>>>>>>> e2ebf7f (tests for api)
     { name = "streamlit" },
     { name = "torch", version = "2.6.0", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "python_full_version < '3.14' and sys_platform == 'darwin'" },
     { name = "torch", version = "2.6.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "python_full_version >= '3.14' or sys_platform != 'darwin'" },
@@ -347,7 +351,11 @@ requires-dist = [
     { name = "dvc-gdrive", specifier = ">=3.0.1" },
     { name = "dvc-gs", specifier = ">=3.0.0" },
     { name = "evidently", specifier = ">=0.7.21" },
+<<<<<<< HEAD
     { name = "fastapi", specifier = ">=0.116.0" },
+=======
+    { name = "fastapi", specifier = ">=0.116.1" },
+>>>>>>> e2ebf7f (tests for api)
     { name = "gdown", specifier = "==5.2.0" },
     { name = "pandas", specifier = "==3.0.3" },
     { name = "pep8", specifier = ">=1.7.1" },
@@ -356,9 +364,15 @@ requires-dist = [
     { name = "python-multipart", specifier = ">=0.0.32" },
     { name = "pytorch-lightning", specifier = ">=2.6.5" },
     { name = "requests", specifier = ">=2.34.2" },
+<<<<<<< HEAD
     { name = "streamlit", specifier = ">=1.58.0" },
     { name = "torch", specifier = "==2.6.0", index = "https://download.pytorch.org/whl/cpu" },
     { name = "torchvision", specifier = "==0.21.0", index = "https://download.pytorch.org/whl/cpu" },
+=======
+    { name = "starlette", specifier = ">=0.47.2" },
+    { name = "streamlit", specifier = ">=1.58.0" },
+    { name = "torch", specifier = "==2.6.0", index = "https://download.pytorch.org/whl/cpu" },
+>>>>>>> e2ebf7f (tests for api)
     { name = "torchvision", specifier = ">=0.21.0", index = "https://download.pytorch.org/whl/cpu" },
     { name = "typer", specifier = "==0.15.1" },
     { name = "uvicorn", specifier = "==0.34.0" },
@@ -1495,6 +1509,7 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/33/e4/8d187ea29c2e30b3a09505c567513077d6117861bde1fbd997a167f262ec/griffelib-2.1.0.tar.gz", hash = "sha256:762a186d2c6fd6794d4ea20d428d597ffb857cb56b66421651cbba15bdd5e813", size = 216234, upload-time = "2026-06-19T12:05:42.278Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/e4/d3/5268aeabf2ad82658c4e2ff3a060648d0f02f3926cb53247c0e4d0dab49e/griffelib-2.1.0-py3-none-any.whl", hash = "sha256:cc7b3d2d2865ad0b909fcc38086e3f554b5ea7acbaa7bbb7ecaa3f5dfb7d9f00", size = 142560, upload-time = "2026-06-19T12:05:38.742Z" },
+<<<<<<< HEAD
 ]
 
 [[package]]
@@ -1564,6 +1579,8 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/32/26/0aa9168c87882381fd810d140c279a2490ed6aee655f0515d6f56c5ca404/grpcio_status-1.81.1.tar.gz", hash = "sha256:9389a03e746017b10f0630c064289201458f3ce01f5d7ef4b0bebc1ef6cf82ad", size = 13923, upload-time = "2026-06-11T12:58:48.636Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/e5/5e/5abfec5f7e89d3b7993d57cfb025ca5f968a2c18656d7fcda2b6919440b9/grpcio_status-1.81.1-py3-none-any.whl", hash = "sha256:08072fa9995f4a95c647fc6f4f85e2411573d00087bcabdf30f260114338f232", size = 14638, upload-time = "2026-06-11T12:58:31.982Z" },
+=======
+>>>>>>> e2ebf7f (tests for api)
 ]
 
 [[package]]

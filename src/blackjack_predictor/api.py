@@ -86,9 +86,9 @@ Instrumentator().instrument(app).expose(app)
 
 # 4. Define structural Request/Response JSON serialization schemes
 class InferenceRequest(BaseModel):
-    dealt_card_1: int = Field(..., description="Value of player initial card 1")
-    dealt_card_2: int = Field(..., description="Value of player initial card 2")
-    dealer_card: int = Field(..., description="Value of dealer face-up card")
+    dealt_card_1: int = Field(..., ge=0, le=11, description="Value of player initial card 1")
+    dealt_card_2: int = Field(..., ge=0, le=11, description="Value of player initial card 2")
+    dealer_card: int = Field(..., ge=0, le=11, description="Value of dealer face-up card")
 
 
 class InferenceResponse(BaseModel):
@@ -110,17 +110,11 @@ async def predict(payload: InferenceRequest):
     if model is None:
         raise HTTPException(status_code=503, detail="Serving model is uninitialized.")
 
-    # Boundary threshold input validation
-    if not all(0 <= card <= 11 for card in [payload.dealt_card_1, payload.dealt_card_2, payload.dealer_card]):
-        raise HTTPException(
-            status_code=400, detail="Card boundary distributions must be integer weights between 0 and 11 inclusive."
-        )
-
     input_features = [payload.dealt_card_1, payload.dealt_card_2, payload.dealer_card]
     if len(input_features) != cfg.model_config.input_dim:
         raise HTTPException(
-            status_code=400,
-            detail=f"Dimension mismatch. Model requires {cfg.model_config.input_dim} features, received {len(input_features)}.",
+            status_code=422, 
+            detail=f"Dimension mismatch. Model requires {cfg.model_config.input_dim} features, received {len(input_features)}."
         )
 
     # Transform numerical array into a 2D float tensor batch layer
@@ -239,5 +233,4 @@ def health_check():
 
 if __name__ == "__main__":
     import uvicorn
-
     uvicorn.run("api:app", host="localhost", port=8000, reload=True)
