@@ -1,6 +1,5 @@
 import pytest
 import torch
-from pathlib import Path
 from blackjack_predictor.data_.dataset import BlackjackDataset
 
 def test_dataset_loads_pt_file(tmp_path):

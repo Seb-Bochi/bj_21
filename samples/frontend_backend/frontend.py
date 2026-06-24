@@ -5,7 +5,6 @@ from typing import Any
 
 import requests
 import streamlit as st
-"""Entry point for the blackjack prediction API."""
 
 from blackjack_predictor.api import app
 
