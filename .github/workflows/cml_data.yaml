@@ -60,6 +60,7 @@ jobs:
       uses: iterative/setup-cml@v3
 
     - name: Comment on PR
+      if: github.event_name == 'push'
       env:
         REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
