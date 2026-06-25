@@ -12,7 +12,6 @@ jobs:
       matrix:
         operating-system: ["ubuntu-latest"]
         python-version: ["3.12"]
-        pytorch-version: ["2.6.0"]
 
     steps:
       - name: Checkout code
@@ -39,5 +38,5 @@ jobs:
 
       - name: Run tests & coverage
         run: |
-          uv run coverage run -m pytest 
+          uv run coverage run -m pytest
           uv run coverage report -m
