@@ -43,12 +43,22 @@ def train(cfg: DictConfig) -> None:
         job_type="train",
     )
 
+    # Detect if multiple GPUs are available to enforce explicit DDP distributed strategy
+    num_gpus = torch.cuda.device_count()
+    if num_gpus > 1:
+        selected_strategy = "ddp"
+        selected_devices = num_gpus
+        print(f"Explicitly initiating Distributed Training via DDP over {num_gpus} GPUs.")
+    else:
+        selected_strategy = "auto"
+        selected_devices = "auto"
+
     trainer = Trainer(
         max_epochs=cfg.training_config.max_epochs,
         log_every_n_steps=1,
         accelerator="auto",
-        devices="auto",
-        strategy="auto",
+        devices=selected_devices,
+        strategy=selected_strategy,
         logger=wandb_logger,
     )
 

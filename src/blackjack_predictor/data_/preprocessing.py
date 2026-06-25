@@ -1,8 +1,10 @@
+import argparse
 from pathlib import Path
 from typing import Final, Union
-import torch
+
 import pandas as pd
-import argparse
+import torch
+
 from blackjack_predictor.logger import get_logger
 
 # Initialize the logger
