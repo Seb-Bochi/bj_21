@@ -1,6 +1,8 @@
+from pathlib import Path
+
 import torch
 import typer
-from pathlib import Path
+
 from blackjack_predictor.data_.dataset import BlackjackDataset
 
 EXPECTED_SIZE = 815767

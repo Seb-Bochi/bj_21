@@ -1,10 +1,9 @@
-import os
 import time
-import json
+from pathlib import Path
+
 import torch
 import torch.nn as nn
-import numpy as np
-from pathlib import Path
+
 from blackjack_predictor.models.ffnn import SimpleFNN
 
 

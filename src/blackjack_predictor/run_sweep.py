@@ -1,10 +1,12 @@
-import wandb
 from pathlib import Path
+
 from pytorch_lightning import Trainer
 from pytorch_lightning.loggers import WandbLogger
+
+import wandb
 from blackjack_predictor.data_ import BlackjackDataModule
-from blackjack_predictor.tasks import PredictionTask
 from blackjack_predictor.models.ffnn import SimpleFNN
+from blackjack_predictor.tasks import PredictionTask
 
 
 def sweep_iteration():

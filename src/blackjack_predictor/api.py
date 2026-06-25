@@ -1,17 +1,18 @@
 import json
-from pathlib import Path
 from contextlib import asynccontextmanager
-import torch
+from pathlib import Path
+
 import pandas as pd
+import torch
+from evidently import Report
+from evidently.presets import DataDriftPreset
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import RedirectResponse
-from pydantic import BaseModel, Field
-from hydra import initialize, compose
+from hydra import compose, initialize
 
 # Prometheus & Evidently AI imports
 from prometheus_fastapi_instrumentator import Instrumentator
-from evidently import Report
-from evidently.presets import DataDriftPreset
+from pydantic import BaseModel, Field
 
 # Handle importing aiofiles safely for asynchronous logging
 try:
@@ -22,7 +23,6 @@ except ImportError:
     AIOFILES_AVAILABLE = False
 
 from blackjack_predictor.models.ffnn import SimpleFNN
-
 
 # 1. Safely Load Hydra Configuration without CLI overrides
 try:

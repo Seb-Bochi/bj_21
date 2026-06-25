@@ -1,10 +1,11 @@
 import os
 import time
-import torch
-import pytest
-import wandb
 
+import pytest
+import torch
 from blackjack_predictor.models.ffnn import SimpleFNN
+
+import wandb
 
 
 def test_model_forward_shape():

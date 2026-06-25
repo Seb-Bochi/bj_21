@@ -1,7 +1,9 @@
 import os
 from typing import Annotated, Optional
-import wandb
+
 import typer
+
+import wandb
 
 
 def link_model(

@@ -3,9 +3,7 @@ from pathlib import Path
 import numpy as np
 import onnxruntime as rt
 import torch
-
 from blackjack_predictor.models.ffnn import SimpleFNN
-
 
 MODEL_PATH = Path("models/model.pth")
 ONNX_MODEL_PATH = Path("models/model.onnx")

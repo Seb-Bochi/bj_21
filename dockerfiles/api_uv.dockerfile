@@ -1,4 +1,6 @@
-FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim AS base
+FROM python:3.12-slim
+
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
 ENV PORT=8080
 
@@ -9,7 +11,6 @@ RUN uv sync --frozen --no-install-project
 
 COPY src src/
 COPY configs configs/
-COPY data data/
 COPY README.md README.md
 COPY LICENSE LICENSE
 COPY models models/

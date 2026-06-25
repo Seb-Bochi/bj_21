@@ -73,7 +73,7 @@ url = "https://download.pytorch.org/whl/cpu"
 explicit = true
 
 [tool.ruff]
-line-length = 120
+line-length = 150
 
 [tool.ruff.lint]
 # E: pycodestyle errors, F: Pyflakes, I: isort (auto-sorting imports)

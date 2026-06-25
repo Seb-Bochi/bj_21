@@ -1,8 +1,9 @@
-import torch
 import hydra
+import torch
 from omegaconf import DictConfig
+from torch.profiler import ProfilerActivity, profile, record_function
 from torch.utils.data import DataLoader
-from torch.profiler import profile, record_function, ProfilerActivity
+
 from blackjack_predictor.data_.dataset import BlackjackDataset
 from blackjack_predictor.models.ffnn import SimpleFNN
 

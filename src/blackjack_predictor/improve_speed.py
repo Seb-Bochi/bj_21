@@ -1,7 +1,9 @@
 import time
+from pathlib import Path
+
 import torch
 import torch.nn.utils.prune as prune
-from pathlib import Path
+
 from blackjack_predictor.models.ffnn import SimpleFNN
 
 MODEL_PATH = Path("models/model.pth")
