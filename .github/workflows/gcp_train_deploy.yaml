@@ -1,0 +1,65 @@
+name: GCP train and deploy
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "cloudbuild.yaml"
+      - "dockerfiles/train_uv.dockerfile"
+      - "dockerfiles/api_uv.dockerfile"
+      - "infra/vertex/**"
+      - "scripts/submit_vertex_training.sh"
+      - "scripts/verify_cloud_run.sh"
+      - "src/**"
+      - "pyproject.toml"
+      - "uv.lock"
+
+env:
+  PROJECT_ID: dtumlops-499809
+  REGION: europe-west1
+  SERVICE: blackjack-predictor-api
+  TRAIN_IMAGE: europe-west1-docker.pkg.dev/dtumlops-499809/dtumlops/blackjack-train:latest
+
+jobs:
+  build_deploy_and_train:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set up gcloud
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Build images and deploy Cloud Run
+        run: |
+          gcloud builds submit \
+            --project "$PROJECT_ID" \
+            --config cloudbuild.yaml \
+            --substitutions "_TRAIN_IMAGE=$TRAIN_IMAGE"
+
+      - name: Verify Cloud Run deployment
+        run: |
+          bash scripts/verify_cloud_run.sh | tee cloud-run-verification.txt
+
+      - name: Launch Vertex AI training job
+        run: |
+          gcloud ai custom-jobs create \
+            --project "$PROJECT_ID" \
+            --region "$REGION" \
+            --config infra/vertex/blackjack_train_custom_job.yaml
+
+      - name: Upload deployment verification
+        uses: actions/upload-artifact@v4
+        with:
+          name: cloud-run-verification
+          path: cloud-run-verification.txt

@@ -1,21 +1,80 @@
 steps:
   - name: "gcr.io/cloud-builders/docker"
-    id: "Build container image"
+    id: "Build training image"
     env:
       - "DOCKER_BUILDKIT=1"
     args:
       - "build"
       - "."
       - "-t"
-      - "europe-west1-docker.pkg.dev/$PROJECT_ID/dtumlops/blackjack-train"
+      - "${_TRAIN_IMAGE}"
       - "-f"
       - "dockerfiles/train_uv.dockerfile"
 
   - name: "gcr.io/cloud-builders/docker"
-    id: "Push container image"
+    id: "Push training image"
     args:
       - "push"
-      - "europe-west1-docker.pkg.dev/$PROJECT_ID/dtumlops/blackjack-train"
+      - "${_TRAIN_IMAGE}"
 
+  - name: "gcr.io/cloud-builders/docker"
+    id: "Build API image"
+    env:
+      - "DOCKER_BUILDKIT=1"
+    args:
+      - "build"
+      - "."
+      - "-t"
+      - "${_API_IMAGE}"
+      - "-f"
+      - "dockerfiles/api_uv.dockerfile"
+
+  - name: "gcr.io/cloud-builders/docker"
+    id: "Push API image"
+    args:
+      - "push"
+      - "${_API_IMAGE}"
+
+<<<<<<< Updated upstream
+=======
+  - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
+    id: "Deploy to Cloud Run"
+    entrypoint: "gcloud"
+    args:
+      - "run"
+      - "deploy"
+      - "blackjack-predictor-api"
+      - "--image=${_API_IMAGE}"
+      - "--port=8080"
+      - "--region=europe-west1"
+      - "--memory=2Gi"
+      - "--cpu=2"
+
+  - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
+    id: "Verify Cloud Run service"
+    entrypoint: "bash"
+    args:
+      - "-c"
+      - |
+        set -euo pipefail
+        SERVICE_STATUS="$$(gcloud run services describe blackjack-predictor-api \
+          --region=europe-west1 \
+          --format='value(status.conditions[0].status)')"
+        SERVICE_URL="$$(gcloud run services describe blackjack-predictor-api \
+          --region=europe-west1 \
+          --format='value(status.url)')"
+        test "$${SERVICE_STATUS}" = "True"
+        test -n "$${SERVICE_URL}"
+        echo "Cloud Run service is Ready at $${SERVICE_URL}"
+
+substitutions:
+  _TRAIN_IMAGE: "europe-west1-docker.pkg.dev/dtumlops-499809/dtumlops/blackjack-train:latest"
+  _API_IMAGE: "europe-west1-docker.pkg.dev/dtumlops-499809/dtumlops/blackjack-api:latest"
+
+images:
+  - "${_TRAIN_IMAGE}"
+  - "${_API_IMAGE}"
+
+>>>>>>> Stashed changes
 options:
   logging: CLOUD_LOGGING_ONLY

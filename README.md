@@ -70,4 +70,30 @@ uv run invoke preprocess-data
 uv run invoke train
 ```
 
+
+## GCP training and deployment
+
+The repository includes a Cloud Build pipeline and a Vertex AI custom job definition for reproducible cloud training.
+
+1. Build and deploy the training/API containers:
+
+```bash
+gcloud builds submit --config cloudbuild.yaml
+```
+
+2. Launch training on Vertex AI:
+
+```bash
+bash scripts/submit_vertex_training.sh
+```
+
+3. Verify the deployed Cloud Run API:
+
+```bash
+bash scripts/verify_cloud_run.sh
+```
+
+The GitHub workflow `.github/workflows/gcp_train_deploy.yaml` runs the same path: it builds both containers, deploys the
+FastAPI service to Cloud Run, verifies `/health`, uploads the verification output, and submits the Vertex AI custom job.
+
 ````

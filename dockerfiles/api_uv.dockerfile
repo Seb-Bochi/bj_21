@@ -1,6 +1,10 @@
+<<<<<<< Updated upstream
 FROM python:3.12-slim
 
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+=======
+FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim AS base
+>>>>>>> Stashed changes
 
 ENV PORT=8080
 
@@ -11,10 +15,21 @@ RUN uv sync --frozen --no-install-project
 
 COPY src src/
 COPY configs configs/
+<<<<<<< Updated upstream
+=======
+COPY data data/
+>>>>>>> Stashed changes
 COPY README.md README.md
 COPY LICENSE LICENSE
 COPY models models/
 
 RUN uv sync --frozen
 
+<<<<<<< Updated upstream
 CMD uv run uvicorn src.blackjack_predictor.api:app --host 0.0.0.0 --port $PORT
+=======
+ENV PATH="/.venv/bin:$PATH"
+ENV PYTHONPATH="/src"
+
+CMD ["sh", "-c", "uvicorn blackjack_predictor.api:app --host 0.0.0.0 --port ${PORT:-8080}"]
+>>>>>>> Stashed changes

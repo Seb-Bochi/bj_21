@@ -17,6 +17,11 @@
   * To run the sample frontend, use `uv run invoke serve-frontend`.
 * The project uses `pre-commit` for managing pre-commit hooks. To run all hooks on all files, use
     `uv run pre-commit run --all-files`. For more information, refer to the `.pre-commit-config.yaml` file.
+* The project uses Google Cloud for containerized training and serving:
+  * To build and deploy the training/API containers through Cloud Build, use
+    `gcloud builds submit --config cloudbuild.yaml`.
+  * To launch the Vertex AI training job, use `bash scripts/submit_vertex_training.sh`.
+  * To verify the deployed Cloud Run API, use `bash scripts/verify_cloud_run.sh`.
 
 # Code style
 
