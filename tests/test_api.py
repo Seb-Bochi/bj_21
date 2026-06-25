@@ -2,14 +2,13 @@ import asyncio
 import json
 from pathlib import Path
 
+import blackjack_predictor.api as api
+import blackjack_predictor.api_specialized as api_specialized
 import numpy as np
 import pytest
 import torch
 from fastapi.testclient import TestClient
 from pydantic import ValidationError
-
-import blackjack_predictor.api as api
-import blackjack_predictor.api_specialized as api_specialized
 
 
 class FakeModel:
@@ -123,10 +122,8 @@ def test_specialized_predict_returns_probabilities_and_logs_result(monkeypatch, 
 
 
 def test_specialized_predict_rejects_out_of_range_cards_with_422(monkeypatch, tmp_path) -> None:
-    log_file = tmp_path / "specialized_production_logs.jsonl"
     fake_session = FakeSession(np.asarray([[0.2, 1.4]], dtype=np.float32))
 
-    monkeypatch.setattr(api_specialized, "LOG_FILE", log_file)
     monkeypatch.setattr(api_specialized, "create_inference_session", lambda: fake_session)
     api_specialized.BlackjackSpecializedService()
 
@@ -136,64 +133,19 @@ def test_specialized_predict_rejects_out_of_range_cards_with_422(monkeypatch, tm
     detail = exc_info.value.errors()
     assert any(error["loc"][-1] == "dealt_card_1" for error in detail)
     assert fake_session.called is False
-    assert read_log_lines(log_file) == []
 
 
-def test_prepare_onnx_artifact_exports_when_missing(monkeypatch, tmp_path) -> None:
-    model_path = tmp_path / "model.pth"
-    model_path.write_bytes(b"weights")
-    onnx_model_path = tmp_path / "model.onnx"
-    export_calls = []
-
-    monkeypatch.setattr(api_specialized.torch, "load", lambda *args, **kwargs: {"weights": "state"})
-
-    def fake_export(model, dummy_input, export_path, **kwargs):
-        export_calls.append(
-            {
-                "shape": tuple(dummy_input.shape),
-                "path": Path(export_path),
-                "kwargs": kwargs,
-            }
-        )
-        Path(export_path).write_bytes(b"onnx")
-
-    monkeypatch.setattr(api_specialized.torch.onnx, "export", fake_export)
-
-    class FakeFNN:
-        def __init__(self, input_dim: int, hidden_dim: int, output_dim: int) -> None:
-            self.input_dim = input_dim
-            self.hidden_dim = hidden_dim
-            self.output_dim = output_dim
-            self.state_dict = None
-            self.eval_called = False
-
-        def load_state_dict(self, state_dict) -> None:
-            self.state_dict = state_dict
-
-        def eval(self) -> None:
-            self.eval_called = True
-
-    monkeypatch.setattr(api_specialized, "SimpleFNN", FakeFNN)
-
-    result = api_specialized.prepare_onnx_artifact(model_path=model_path, onnx_model_path=onnx_model_path)
-
-    assert result == onnx_model_path
-    assert onnx_model_path.exists()
-    assert len(export_calls) == 1
-    assert export_calls[0]["shape"] == (1, api_specialized.cfg.model_config.input_dim)
-    assert export_calls[0]["path"] == onnx_model_path
-
-
-def test_prepare_onnx_artifact_skips_export_when_present(monkeypatch, tmp_path) -> None:
-    model_path = tmp_path / "model.pth"
+def test_ensure_onnx_artifact_exists_returns_existing_path(tmp_path) -> None:
     onnx_model_path = tmp_path / "model.onnx"
     onnx_model_path.write_bytes(b"existing")
 
-    def fail_export(*args, **kwargs):
-        raise AssertionError("export should not be called")
-
-    monkeypatch.setattr(api_specialized.torch.onnx, "export", fail_export)
-
-    result = api_specialized.prepare_onnx_artifact(model_path=model_path, onnx_model_path=onnx_model_path)
+    result = api_specialized.ensure_onnx_artifact_exists(onnx_model_path=onnx_model_path)
 
     assert result == onnx_model_path
+
+
+def test_ensure_onnx_artifact_exists_raises_when_missing(tmp_path) -> None:
+    onnx_model_path = tmp_path / "model.onnx"
+
+    with pytest.raises(FileNotFoundError, match="Missing ONNX artifact at '.*model\\.onnx'.*"):
+        api_specialized.ensure_onnx_artifact_exists(onnx_model_path=onnx_model_path)

@@ -4,23 +4,17 @@ from pathlib import Path
 
 import bentoml
 import numpy as np
-from onnxruntime import InferenceSession
-import torch
 from hydra import compose, initialize
+from onnxruntime import InferenceSession
 from pydantic import BaseModel, Field
 
-from blackjack_predictor.models.ffnn import SimpleFNN
-
+from blackjack_predictor.export_onnx import ONNX_MODEL_PATH
 
 try:
     with initialize(version_base=None, config_path="../../configs"):
         cfg = compose(config_name="config")
 except Exception as exc:
     raise RuntimeError(f"Failed to load Hydra configuration globally: {exc}") from exc
-
-
-MODEL_PATH = Path(cfg.data_config.model_path)
-ONNX_MODEL_PATH = Path("models/model.onnx")
 
 
 class InferenceRequest(BaseModel):
@@ -39,64 +33,31 @@ class InferenceResponse(BaseModel):
     prediction: bool
 
 
-def prepare_onnx_artifact(
-    model_path: Path = MODEL_PATH,
-    onnx_model_path: Path = ONNX_MODEL_PATH,
-) -> Path:
-    """Ensure the ONNX model artifact exists for runtime inference.
+def ensure_onnx_artifact_exists(onnx_model_path: Path = ONNX_MODEL_PATH) -> Path:
+    """Return the ONNX artifact path when it exists.
 
     Args:
-        model_path: Path to the trained PyTorch weights.
-        onnx_model_path: Destination path for the ONNX artifact.
+        onnx_model_path: Path to the ONNX artifact.
 
     Returns:
         Path to the ONNX artifact.
 
     Raises:
-        FileNotFoundError: If the PyTorch weights are missing.
-        RuntimeError: If the ONNX export fails.
+        FileNotFoundError: If the ONNX artifact is missing.
     """
 
     if onnx_model_path.exists():
         return onnx_model_path
 
-    if not model_path.exists():
-        raise FileNotFoundError(
-            f"Trained model weights missing at '{model_path}'. Please run training pipelines first."
-        )
-
-    model = SimpleFNN(
-        input_dim=cfg.model_config.input_dim,
-        hidden_dim=cfg.model_config.hidden_dim,
-        output_dim=cfg.model_config.output_dim,
+    raise FileNotFoundError(
+        f"Missing ONNX artifact at '{onnx_model_path}'. Run uv run src/blackjack_predictor/train.py to generate it."
     )
-    state_dict = torch.load(model_path, map_location=torch.device("cpu"), weights_only=True)
-    model.load_state_dict(state_dict)
-    model.eval()
-
-    dummy_input = torch.zeros((1, cfg.model_config.input_dim), dtype=torch.float32)
-    onnx_model_path.parent.mkdir(parents=True, exist_ok=True)
-
-    try:
-        torch.onnx.export(
-            model,
-            dummy_input,
-            onnx_model_path,
-            input_names=["input"],
-            output_names=["logits"],
-            dynamic_axes={"input": {0: "batch_size"}, "logits": {0: "batch_size"}},
-            opset_version=17,
-        )
-    except Exception as exc:
-        raise RuntimeError(f"Failed to export ONNX model to '{onnx_model_path}': {exc}") from exc
-
-    return onnx_model_path
 
 
 def create_inference_session() -> InferenceSession:
     """Create an ONNX Runtime session for the specialized API."""
 
-    onnx_model_path = prepare_onnx_artifact()
+    onnx_model_path = ensure_onnx_artifact_exists()
 
     try:
         return InferenceSession(

@@ -1,13 +1,16 @@
-import torch
-import wandb
-import hydra
-from omegaconf import DictConfig, OmegaConf
 from pathlib import Path
+
+import hydra
+import torch
+from omegaconf import DictConfig, OmegaConf
 from pytorch_lightning import Trainer
 from pytorch_lightning.loggers import WandbLogger
+
+import wandb
 from blackjack_predictor.data_ import BlackjackDataModule
-from blackjack_predictor.tasks import PredictionTask
+from blackjack_predictor.export_onnx import export_onnx_artifact
 from blackjack_predictor.models.ffnn import SimpleFNN
+from blackjack_predictor.tasks import PredictionTask
 
 
 @hydra.main(config_path="../../configs", config_name="config", version_base=None)
@@ -72,6 +75,9 @@ def train(cfg: DictConfig) -> None:
         model_path.parent.mkdir(parents=True, exist_ok=True)
         torch.save(base_model.state_dict(), model_path)
         print(f"Saved model to {model_path}")
+
+        onnx_model_path = export_onnx_artifact(cfg=cfg, model_path=model_path)
+        print(f"Exported ONNX model to {onnx_model_path}")
 
         artifact = wandb.Artifact(
             name="blackjack-model",
