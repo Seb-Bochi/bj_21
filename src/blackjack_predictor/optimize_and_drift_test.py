@@ -63,13 +63,13 @@ def run_optimization_and_drift_pipeline():
     results["Quantized_int8"] = {"Accuracy": quant_acc, "Latency_ms_per_sample": quant_lat}
 
     # Save quantized model to record weight changes
-    quant_path = Path("models/quantized_model.pt")
+    quant_path = Path("models/quantized_int8_model.pt")
     quant_path.parent.mkdir(parents=True, exist_ok=True)
     torch.save(quantized_model.state_dict(), quant_path)
 
     # D. ONNX Deployment Export
     print("Exporting model to ONNX format...")
-    onnx_path = "models/blackjack_model.onnx"
+    onnx_path = "models/optimized_deployment_model.onnx"
     dummy_input = torch.randn(1, input_dim)
     torch.onnx.export(
         model,
