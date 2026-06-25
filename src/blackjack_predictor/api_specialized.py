@@ -1,0 +1,163 @@
+from __future__ import annotations
+
+from pathlib import Path
+
+import bentoml
+import numpy as np
+from onnxruntime import InferenceSession
+import torch
+from hydra import compose, initialize
+from pydantic import BaseModel, Field
+
+from blackjack_predictor.models.ffnn import SimpleFNN
+
+
+try:
+    with initialize(version_base=None, config_path="../../configs"):
+        cfg = compose(config_name="config")
+except Exception as exc:
+    raise RuntimeError(f"Failed to load Hydra configuration globally: {exc}") from exc
+
+
+MODEL_PATH = Path(cfg.data_config.model_path)
+ONNX_MODEL_PATH = Path("models/model.onnx")
+
+
+class InferenceRequest(BaseModel):
+    """Input payload for blackjack inference."""
+
+    dealt_card_1: int = Field(..., ge=0, le=11, description="Value of player initial card 1")
+    dealt_card_2: int = Field(..., ge=0, le=11, description="Value of player initial card 2")
+    dealer_card: int = Field(..., ge=0, le=11, description="Value of dealer face-up card")
+
+
+class InferenceResponse(BaseModel):
+    """Prediction payload returned by the specialized API."""
+
+    loss_probability: float
+    win_probability: float
+    prediction: bool
+
+
+def prepare_onnx_artifact(
+    model_path: Path = MODEL_PATH,
+    onnx_model_path: Path = ONNX_MODEL_PATH,
+) -> Path:
+    """Ensure the ONNX model artifact exists for runtime inference.
+
+    Args:
+        model_path: Path to the trained PyTorch weights.
+        onnx_model_path: Destination path for the ONNX artifact.
+
+    Returns:
+        Path to the ONNX artifact.
+
+    Raises:
+        FileNotFoundError: If the PyTorch weights are missing.
+        RuntimeError: If the ONNX export fails.
+    """
+
+    if onnx_model_path.exists():
+        return onnx_model_path
+
+    if not model_path.exists():
+        raise FileNotFoundError(
+            f"Trained model weights missing at '{model_path}'. Please run training pipelines first."
+        )
+
+    model = SimpleFNN(
+        input_dim=cfg.model_config.input_dim,
+        hidden_dim=cfg.model_config.hidden_dim,
+        output_dim=cfg.model_config.output_dim,
+    )
+    state_dict = torch.load(model_path, map_location=torch.device("cpu"), weights_only=True)
+    model.load_state_dict(state_dict)
+    model.eval()
+
+    dummy_input = torch.zeros((1, cfg.model_config.input_dim), dtype=torch.float32)
+    onnx_model_path.parent.mkdir(parents=True, exist_ok=True)
+
+    try:
+        torch.onnx.export(
+            model,
+            dummy_input,
+            onnx_model_path,
+            input_names=["input"],
+            output_names=["logits"],
+            dynamic_axes={"input": {0: "batch_size"}, "logits": {0: "batch_size"}},
+            opset_version=17,
+        )
+    except Exception as exc:
+        raise RuntimeError(f"Failed to export ONNX model to '{onnx_model_path}': {exc}") from exc
+
+    return onnx_model_path
+
+
+def create_inference_session() -> InferenceSession:
+    """Create an ONNX Runtime session for the specialized API."""
+
+    onnx_model_path = prepare_onnx_artifact()
+
+    try:
+        return InferenceSession(
+            onnx_model_path.as_posix(),
+            providers=["CPUExecutionProvider"],
+        )
+    except Exception as exc:
+        raise RuntimeError(f"Failed to initialize ONNX runtime session from '{onnx_model_path}': {exc}") from exc
+
+
+def compute_probabilities(logits: np.ndarray) -> list[float]:
+    """Convert logits into a normalized probability vector."""
+
+    shifted_logits = logits - np.max(logits)
+    exp_scores = np.exp(shifted_logits)
+    probabilities = exp_scores / np.sum(exp_scores)
+    return probabilities.astype(float).tolist()
+
+
+@bentoml.service(name="blackjack-specialized-api")
+class BlackjackSpecializedService:
+    """BentoML service that serves blackjack predictions through ONNX Runtime."""
+
+    def __init__(self) -> None:
+        """Initialize the runtime session and input metadata."""
+
+        self.session = create_inference_session()
+        self.input_name = self.session.get_inputs()[0].name
+
+    def _predict_logits(self, payload: InferenceRequest) -> tuple[list[int], np.ndarray]:
+        """Run ONNX inference and return the input features and logits."""
+
+        input_features = [payload.dealt_card_1, payload.dealt_card_2, payload.dealer_card]
+        if len(input_features) != cfg.model_config.input_dim:
+            raise ValueError(
+                f"Dimension mismatch. Model requires {cfg.model_config.input_dim} features, "
+                f"received {len(input_features)}."
+            )
+
+        input_array = np.asarray([input_features], dtype=np.float32)
+        outputs = self.session.run(None, {self.input_name: input_array})
+        logits = np.asarray(outputs[0], dtype=np.float32)
+        if logits.ndim != 2 or logits.shape[0] != 1 or logits.shape[1] != cfg.model_config.output_dim:
+            raise RuntimeError(f"Unexpected ONNX output shape: {tuple(logits.shape)}")
+
+        return input_features, logits[0]
+
+    @bentoml.api(route="/predict")
+    async def predict(self, payload: InferenceRequest) -> InferenceResponse:
+        """Run blackjack inference and write a production log row."""
+
+        input_features, logits = self._predict_logits(payload)
+        probabilities = compute_probabilities(logits)
+        predicted_class = int(np.argmax(logits))
+
+        response_data = InferenceResponse(
+            loss_probability=probabilities[0],
+            win_probability=probabilities[1],
+            prediction=bool(predicted_class),
+        )
+
+        return response_data
+
+

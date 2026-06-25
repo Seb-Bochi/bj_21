@@ -1,0 +1,83 @@
+name: Deploy APIs
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  GCP_REGION: europe-west1
+  ARTIFACT_REGISTRY_REPOSITORY: dtumlops
+  BLACKJACK_API_SERVICE: blackjack-api
+  BLACKJACK_SPECIALIZED_API_SERVICE: blackjack-specialized-api
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    env:
+      PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+      BLACKJACK_API_IMAGE: europe-west1-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/dtumlops/blackjack-api
+      BLACKJACK_SPECIALIZED_API_IMAGE: europe-west1-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/dtumlops/blackjack-specialized-api
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set up Google Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ env.PROJECT_ID }}
+
+      - name: Configure Docker authentication
+        run: |
+          gcloud auth configure-docker ${{ env.GCP_REGION }}-docker.pkg.dev --quiet
+
+      - name: Build blackjack-api image
+        run: |
+          docker build \
+            --file dockerfiles/api_uv.dockerfile \
+            --tag ${{ env.BLACKJACK_API_IMAGE }}:latest \
+            --tag ${{ env.BLACKJACK_API_IMAGE }}:${{ github.sha }} \
+            .
+
+      - name: Push blackjack-api image tags
+        run: |
+          docker push ${{ env.BLACKJACK_API_IMAGE }}:latest
+          docker push ${{ env.BLACKJACK_API_IMAGE }}:${{ github.sha }}
+
+      - name: Deploy blackjack-api
+        run: |
+          gcloud run deploy ${{ env.BLACKJACK_API_SERVICE }} \
+            --image ${{ env.BLACKJACK_API_IMAGE }}:${{ github.sha }} \
+            --region ${{ env.GCP_REGION }} \
+            --port 8080 \
+            --allow-unauthenticated
+
+      - name: Build blackjack-specialized-api image
+        run: |
+          docker build \
+            --file dockerfiles/api_specialized_build.dockerfile \
+            --tag ${{ env.BLACKJACK_SPECIALIZED_API_IMAGE }}:latest \
+            --tag ${{ env.BLACKJACK_SPECIALIZED_API_IMAGE }}:${{ github.sha }} \
+            .
+
+      - name: Push blackjack-specialized-api image tags
+        run: |
+          docker push ${{ env.BLACKJACK_SPECIALIZED_API_IMAGE }}:latest
+          docker push ${{ env.BLACKJACK_SPECIALIZED_API_IMAGE }}:${{ github.sha }}
+
+      - name: Deploy blackjack-specialized-api
+        run: |
+          gcloud run deploy ${{ env.BLACKJACK_SPECIALIZED_API_SERVICE }} \
+            --image ${{ env.BLACKJACK_SPECIALIZED_API_IMAGE }}:${{ github.sha }} \
+            --region ${{ env.GCP_REGION }} \
+            --port 3000 \
+            --allow-unauthenticated

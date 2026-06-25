@@ -17,11 +17,14 @@ classifiers = [
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "bentoml>=1.4.31",
     "dvc[gdrive,gs]>=3.67.1",
     "dvc-gdrive>=3.0.1",
     "dvc-gs>=3.0.0",
     "fastapi>=0.116.0",
     "gdown==5.2.0",
+    "onnx>=1.19.0",
+    "onnxruntime>=1.22.1",
     "pandas==3.0.3",
     "pytorch-lightning>=2.6.5",
     "torch==2.6.0",

@@ -8,6 +8,7 @@ COPY pyproject.toml pyproject.toml
 RUN uv sync --frozen --no-install-project
 
 COPY src src/
+COPY configs configs/
 COPY README.md README.md
 COPY LICENSE LICENSE
 COPY models models/
