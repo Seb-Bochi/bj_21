@@ -33,11 +33,13 @@ jobs:
       with:
         credentials_json: ${{ secrets.GCP_SA_KEY }}
 
-    - name: Pull data cloud
-      env:
-        GRPC_ENABLE_FORK_SUPPORT: "False"
+    - name: Pull data
       run: |
-        uv run dvc pull --remote remote_storage --jobs 1 --force
+        uv run dvc pull data.dvc --force -v
+
+    - name: Verify data integrity
+      run: |
+        uv run dvc status -c
 
     - name: Check data statistics & generate report
       run: |
