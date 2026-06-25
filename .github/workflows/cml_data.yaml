@@ -33,7 +33,7 @@ jobs:
       with:
         credentials_json: ${{ secrets.GCP_SA_KEY }}
 
-    - name: Pull data
+    - name: Pull data cloud
       env:
         GRPC_ENABLE_FORK_SUPPORT: "False"
       run: |
