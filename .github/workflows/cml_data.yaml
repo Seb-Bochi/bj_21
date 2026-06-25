@@ -18,6 +18,8 @@ jobs:
     steps:
     - name: Checkout data
       uses: actions/checkout@v4
+      with:
+        ref: ${{ github.event.pull_request.head.sha }} # <--- THIS FIXES THE CONTEXT
 
     - name: Install uv
       uses: astral-sh/setup-uv@v7
