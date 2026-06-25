@@ -4,4 +4,3 @@
     url = gdrive://1iQrOy5TMjb31vfvWKIrhxjIeMgbeTkvL
 ['remote "remote_storage"']
     url = gs://mlops_data_bucket
-    version_aware = true
