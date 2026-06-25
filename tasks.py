@@ -44,6 +44,34 @@ def test(ctx: Context) -> None:
 
 
 @task
+def serve_backend(ctx: Context, host: str = "127.0.0.1", port: int = 8000, reload: bool = True) -> None:
+    """Serve the sample FastAPI backend."""
+    reload_flag = " --reload" if reload else ""
+    ctx.run(
+        f"{uv_command()} run python -m uvicorn samples.frontend_backend.backend:app "
+        f"--host {host} --port {port}{reload_flag}",
+        echo=True,
+        pty=not WINDOWS,
+    )
+
+
+@task
+def serve_frontend(
+    ctx: Context,
+    host: str = "127.0.0.1",
+    port: int = 8501,
+    backend: str = "http://127.0.0.1:8000",
+) -> None:
+    """Serve the sample Streamlit frontend."""
+    ctx.run(
+        f"BACKEND={backend} {uv_command()} run streamlit run samples/frontend_backend/frontend.py "
+        f"--server.address {host} --server.port {port} --server.headless true --browser.gatherUsageStats false",
+        echo=True,
+        pty=not WINDOWS,
+    )
+
+
+@task
 def docker_build(ctx: Context, progress: str = "plain") -> None:
     """Build docker images."""
     ctx.run(
