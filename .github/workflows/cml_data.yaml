@@ -38,7 +38,7 @@ jobs:
         GRPC_ENABLE_FORK_SUPPORT: "False"
       run: |
         mkdir -p data/raw data/processed
-        uv run dvc pull data.dvc --force -v
+        uv run dvc pull --remote remote_storage --jobs 1 --force -v
 
     - name: Preprocess data
       run: |
@@ -47,6 +47,11 @@ jobs:
     - name: Check data statistics & generate report
       run: |
         uv run python src/blackjack_predictor/data_/dataset_statistics.py
+
+    - name: Install Linux graphics dependencies for CML
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libpixman-1-dev libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev
 
     - name: Setup CML
       uses: iterative/setup-cml@v3
