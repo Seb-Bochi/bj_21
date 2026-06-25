@@ -23,17 +23,15 @@ def run_profiling(cfg: DictConfig) -> None:
         record_shapes=True,
         profile_memory=True,
     ) as prof:
-        # ── 1. Dataset init (reads & parses the CSV) ──────────────────
+        
         with record_function("dataset_init"):
             dataset = BlackjackDataset(
                 processed_file=data_path
-            )  # <-- your dataset class that loads the processed .pt file
+            )
 
-        # ── 2. DataLoader construction ────────────────────────────────
         with record_function("dataloader_init"):
             loader = DataLoader(dataset, batch_size=batch_size, shuffle=False)
 
-        # ── 3. Batch fetching (tensor conversion + collation) ─────────
         batches = []
         with record_function("data_loading"):
             for i, batch in enumerate(loader):
@@ -41,17 +39,14 @@ def run_profiling(cfg: DictConfig) -> None:
                     break
                 batches.append(batch)
 
-        # ── 4. Model inference ────────────────────────────────────────
         with torch.no_grad():
             for x, _ in batches:
                 with record_function("model_inference"):
                     model(x)
 
-    # ── Full table sorted by total CPU time ───────────────────────────
     print("\n=== FULL PROFILE (sorted by CPU total) ===")
     print(prof.key_averages().table(sort_by="cpu_time_total", row_limit=row_limit))
 
-    # ── Focused summary: only your named sections ─────────────────────
     print("\n=== PIPELINE STAGE SUMMARY ===")
     named = {
         e.key: e
