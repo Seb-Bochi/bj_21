@@ -1,6 +1,7 @@
 import random
 from locust import HttpUser, task, between
 
+
 class BlackjackPredictorUser(HttpUser):
     # Simulate a user waiting between 0.1 and 1 second between requests
     wait_time = between(0.1, 1.0)
@@ -11,9 +12,9 @@ class BlackjackPredictorUser(HttpUser):
         payload = {
             "dealt_card_1": random.randint(1, 11),
             "dealt_card_2": random.randint(1, 11),
-            "dealer_card": random.randint(1, 11)
+            "dealer_card": random.randint(1, 11),
         }
-        
+
         # Hit the prediction endpoint
         with self.client.post("/predict", json=payload, catch_response=True) as response:
             if response.status_code != 200:

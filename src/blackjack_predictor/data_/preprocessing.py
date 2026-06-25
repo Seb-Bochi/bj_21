@@ -14,6 +14,7 @@ logger = get_logger(__name__)
 FEATURE_COLUMNS: Final[list[str]] = ["card1", "card2", "dealcard1"]
 LABEL_MAP: Final[dict[str, int]] = {"Loss": 0, "Win": 1}
 
+
 def preprocess(data_path: Union[str, Path], output_path: Union[str, Path], target_column: str = "winloss") -> None:
     """
     Preprocesses the raw Blackjack CSV into a PyTorch-compatible .pt file.
@@ -21,9 +22,9 @@ def preprocess(data_path: Union[str, Path], output_path: Union[str, Path], targe
     """
     data_p = Path(data_path)
     output_p = Path(output_path)
-    
+
     logger.info(f"Starting preprocessing: {data_p}")
-    
+
     # Load data
     df = pd.read_csv(data_p)
 
@@ -42,29 +43,22 @@ def preprocess(data_path: Union[str, Path], output_path: Union[str, Path], targe
     # Save processed tensors
     output_p.parent.mkdir(parents=True, exist_ok=True)
     torch.save({"X": X, "y": y}, output_p)
-    
+
     logger.info(f"Success: Saved {len(y)} samples to {output_p}")
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Preprocess Blackjack dataset.")
     parser.add_argument(
-        "--data_path", 
-        type=str, 
-        default="data/raw/blkjckhands.csv", 
-        help="Path to the raw CSV data file."
+        "--data_path", type=str, default="data/raw/blkjckhands.csv", help="Path to the raw CSV data file."
     )
     parser.add_argument(
-        "--output_folder", 
-        type=str, 
-        default="data/processed/blkjckhands_processed.pt", 
-        help="Path to save the processed tensor file."
+        "--output_folder",
+        type=str,
+        default="data/processed/blkjckhands_processed.pt",
+        help="Path to save the processed tensor file.",
     )
-    parser.add_argument(
-        "--target_column", 
-        type=str, 
-        default="winloss", 
-        help="Name of the target column."
-    )
+    parser.add_argument("--target_column", type=str, default="winloss", help="Name of the target column.")
 
     args = parser.parse_args()
     preprocess(args.data_path, args.output_folder, args.target_column)

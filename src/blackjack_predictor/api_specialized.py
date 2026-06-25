@@ -159,5 +159,3 @@ class BlackjackSpecializedService:
         )
 
         return response_data
-
-
