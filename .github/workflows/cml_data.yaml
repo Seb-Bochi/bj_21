@@ -31,7 +31,7 @@ jobs:
 
     - name: Pull data
       run: |
-        uv run dvc pull --remote remote_storage --no-run-cache
+        uv run dvc pull data.dvc --force
 
     - name: Check data statistics & generate report
       run: |
