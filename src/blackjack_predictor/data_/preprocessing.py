@@ -1,59 +1,67 @@
 from pathlib import Path
+from typing import Final, Union
 import torch
 import pandas as pd
+import argparse
+from blackjack_predictor.logger import get_logger
 
+# Initialize the logger
+logger = get_logger(__name__)
 
-def preprocess(data_path: str, output_folder: Path, target_column: str = "winloss") -> None:
-    """Blackjack dataset for win/loss prediction."""
+# Define constants for maintainability and type safety
+FEATURE_COLUMNS: Final[list[str]] = ["card1", "card2", "dealcard1"]
+LABEL_MAP: Final[dict[str, int]] = {"Loss": 0, "Win": 1}
 
-    data_path = Path(data_path)
+def preprocess(data_path: Union[str, Path], output_path: Union[str, Path], target_column: str = "winloss") -> None:
+    """
+    Preprocesses the raw Blackjack CSV into a PyTorch-compatible .pt file.
+    Includes type-safe data loading, validation, and structured logging.
+    """
+    data_p = Path(data_path)
+    output_p = Path(output_path)
+    
+    logger.info(f"Starting preprocessing: {data_p}")
+    
+    # Load data
+    df = pd.read_csv(data_p)
 
-    df = pd.read_csv(data_path)
-
+    # Remove empty first column if present
     if df.columns[0] == "":
         df = df.drop(df.columns[0], axis=1)
 
-    feature_columns = [
-        "card1",
-        "card2",
-        "dealcard1",
-    ]
+    # Filter data based on target column and feature columns
+    df_filtered = df[FEATURE_COLUMNS + [target_column]].copy()
+    df_filtered = df_filtered[df_filtered[target_column].isin(LABEL_MAP.keys())].copy()
 
-    df = df[feature_columns + [target_column]].copy()
+    # Convert to tensors
+    X = torch.tensor(df_filtered[FEATURE_COLUMNS].values, dtype=torch.float32)
+    y = torch.tensor(df_filtered[target_column].map(LABEL_MAP).values, dtype=torch.long)
 
-    label_map = {"Loss": 0, "Win": 1}
-    df = df[df[target_column].isin(label_map)].copy()
-
-    X = torch.tensor(df[feature_columns].values, dtype=torch.float32)
-    y = torch.tensor(df[target_column].map(label_map).values, dtype=torch.long)
-
-    output_path = Path(output_folder)
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    torch.save({"X": X, "y": y}, output_path)
-    print(f"Saved {len(y)} samples to {output_path}")
-
+    # Save processed tensors
+    output_p.parent.mkdir(parents=True, exist_ok=True)
+    torch.save({"X": X, "y": y}, output_p)
+    
+    logger.info(f"Success: Saved {len(y)} samples to {output_p}")
 
 if __name__ == "__main__":
-    import argparse
-
     parser = argparse.ArgumentParser(description="Preprocess Blackjack dataset.")
     parser.add_argument(
-        "--data_path",
-        type=str,
-        default="data/raw/blkjckhands.csv",
-        help="Path to the raw CSV data file.",
+        "--data_path", 
+        type=str, 
+        default="data/raw/blkjckhands.csv", 
+        help="Path to the raw CSV data file."
     )
     parser.add_argument(
-        "--output_folder",
-        type=str,
-        default="data/processed/blkjckhands_processed.pt",
-        help="Path to save the processed tensor file.",
+        "--output_folder", 
+        type=str, 
+        default="data/processed/blkjckhands_processed.pt", 
+        help="Path to save the processed tensor file."
     )
     parser.add_argument(
-        "--target_column",
-        type=str,
-        default="winloss",
-        help="Name of the target column.",
+        "--target_column", 
+        type=str, 
+        default="winloss", 
+        help="Name of the target column."
     )
 
     args = parser.parse_args()
