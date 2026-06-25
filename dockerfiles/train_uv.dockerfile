@@ -9,7 +9,7 @@ COPY uv.lock uv.lock
 COPY pyproject.toml pyproject.toml
 COPY README.md README.md
 COPY src/ src/
-COPY data/ data/
+COPY configs/ configs/
 #execute the application
 WORKDIR /
 ENV UV_LINK_MODE=copy
