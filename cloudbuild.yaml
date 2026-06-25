@@ -35,8 +35,6 @@ steps:
       - "push"
       - "${_API_IMAGE}"
 
-<<<<<<< Updated upstream
-=======
   - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
     id: "Deploy to Cloud Run"
     entrypoint: "gcloud"
@@ -75,6 +73,5 @@ images:
   - "${_TRAIN_IMAGE}"
   - "${_API_IMAGE}"
 
->>>>>>> Stashed changes
 options:
   logging: CLOUD_LOGGING_ONLY
