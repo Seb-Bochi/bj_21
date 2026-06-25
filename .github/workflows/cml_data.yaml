@@ -1,4 +1,8 @@
+name: Data test
+
 on:
+  push:
+    branches: [main]
   pull_request:
     branches: [main]
 
