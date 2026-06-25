@@ -37,11 +37,12 @@ jobs:
       env:
         GRPC_ENABLE_FORK_SUPPORT: "False"
       run: |
-        uv run dvc pull --remote remote_storage --jobs 1 --force
+        mkdir -p data/raw data/processed
+        uv run dvc pull data.dvc --force -v
 
-    - name: Verify data integrity
+    - name: Preprocess data
       run: |
-        uv run dvc status -c
+        uv run python src/blackjack_predictor/data_/preprocessing.py
 
     - name: Check data statistics & generate report
       run: |
