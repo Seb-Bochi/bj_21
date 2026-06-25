@@ -63,4 +63,4 @@ jobs:
       env:
         REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        cml comment create report.md --watermark-title="Data Checker"
+        cml comment create report.md --watermark-title="Data Checker" --publish
