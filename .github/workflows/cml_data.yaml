@@ -11,9 +11,10 @@ jobs:
     name: Check data statistics
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
       pull-requests: write
       issues: write
+      checks: write
 
     steps:
     - name: Checkout data
@@ -60,7 +61,6 @@ jobs:
       uses: iterative/setup-cml@v3
 
     - name: Comment on PR
-      if: github.event_name == 'push'
       env:
         REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
