@@ -4,6 +4,7 @@ import hydra
 import torch
 from omegaconf import DictConfig
 from pytorch_lightning.loggers import WandbLogger
+
 from blackjack_predictor.data_ import BlackjackDataModule
 from blackjack_predictor.models.ffnn import SimpleFNN
 
