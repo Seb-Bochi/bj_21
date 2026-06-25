@@ -49,6 +49,7 @@ dev = [
     "mkdocs-material==9.7.1",
     "mkdocstrings-python==2.0.1",
     "dvc>=3.67.1",
+    "pandas-stubs",
 ]
 
 [tool.uv]
