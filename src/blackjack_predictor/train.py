@@ -8,6 +8,7 @@ from pytorch_lightning import Trainer
 from pytorch_lightning.loggers import WandbLogger
 
 from blackjack_predictor.data_ import BlackjackDataModule
+from blackjack_predictor.data_.preprocessing import preprocess
 from blackjack_predictor.helpers.export_onnx import export_onnx_artifact
 from blackjack_predictor.helpers.logger import get_logger
 from blackjack_predictor.models.ffnn import SimpleFNN
@@ -21,8 +22,14 @@ def train(cfg: DictConfig) -> None:
     """Train the model with PyTorch Lightning, Hydra, and W&B."""
 
     processed_data_path = Path(cfg.data_config.processed_path)
+    raw_data_path = Path(cfg.data_config.raw_path)
     model_path = Path(cfg.data_config.model_path)
+
     logger.info(f"Starting training with data at {processed_data_path} and output model at {model_path}")
+
+    if not processed_data_path.exists():
+        logger.info(f"Processed data missing at {processed_data_path}. Creating it from {raw_data_path}")
+        preprocess(raw_data_path, processed_data_path, cfg.data_config.target_column)
 
     dm = BlackjackDataModule(
         data_path=processed_data_path,

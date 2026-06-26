@@ -146,7 +146,7 @@ will check the repositories and the code to verify your answers.
 > *We used the third-party framework ... in our project. We used functionality ... and functionality ... from the*
 > *package to do ... and ... in our project*.
 >
-> Answer: no we essentially used the course libraries, they are already very complete and can take the project as far as possible.
+> Answer: no we essentially used the course libraries, they are already very complete and can make put the project as far as possible.
 
 --- question 3 fill here ---
 
@@ -201,12 +201,38 @@ The lockfile (uv.lock) is committed to the repository, so the environment is ful
 > *experiments.*
 >
 > Answer:
+The project was initialized using the DTU MLOps cookiecutter template, which provides a standard structure for ML projects. Here is what the template gave us and what we filled in:
 
-From the cookiecutter template we kept the overall structure: src/, tests/, models/, configs/, dockerfiles/, docs/, reports/, notebooks/, .github/workflows/, .pre-commit-config.yaml, pyproject.toml and .gitignore.
+From the template:
 
-We filled out the src/blackjack_predictor/ package with train.py, evaluate.py, tasks.py, api.py, improve_speed.py, profiling.py, run_sweep.py and a models/ subfolder containing ffnn.py. We also added a data_/ subfolder with dataset.py, datamodule.py, preprocessing.py and dataset_statistics.py. The tests/ folder was filled with test_model.py, test_data.py, test_api.py and test_production.py.
+src/blackjack_predictor/ — main package folder
+tests/ — test folder
+data/ (with raw/, processed/ subdirectories)
+models/, notebooks/, reports/, docs/, configs/
+pyproject.toml, .pre-commit-config.yaml, .gitignore
+dockerfiles/ folder
+.devcontainer/ for GitHub Codespaces
+.github/workflows/ for CI/CD
 
-We deviated from the template in several ways. We renamed project_name to blackjack_predictor and split the data logic into a dedicated data_/ subpackage instead of a single data.py. We added a configs/ folder with Hydra config groups (model_config/, training_config/, data_config/, profiling_config/) which was not in the template. We also added .dvc/ and data.dvc for dataset versioning, a cloudbuild.yaml for GCP deployment, and additional GitHub Actions workflows (cml_data.yaml, stage_model.yaml) beyond the template's linting.yaml and tests.yaml
+What we filled in:
+
+src/blackjack_predictor/models/ffnn.py — SimpleFNN neural network
+src/blackjack_predictor/data_/ — dataset, datamodule, preprocessing, statistics
+src/blackjack_predictor/tasks.py — PyTorch Lightning training logic
+src/blackjack_predictor/train.py — Hydra + W&B training entry point
+src/blackjack_predictor/api.py — FastAPI inference endpoint
+configs/ — Hydra config groups for model, training, data, profiling
+tests/ — unit tests for data, model, API, and model registry
+.github/workflows/ — CI tests, linting, CML data checks, staged model deployment
+
+Deviations from the template:
+
+Added a configs/ folder at the root with Hydra config group subfolders (model_config/, training_config/, data_config/, profiling_config/)
+Used .pt tensor files instead of CSV for processed data (faster loading)
+Added tests/test_production.py for W&B model registry automation — not part of the standard template
+Added src/blackjack_predictor/improve_speed.py for pruning benchmarks models
+
+--- question 5 fill here ---
 
 ### Question 6
 
@@ -233,7 +259,7 @@ GitHub actions :
 
 GitHub Actions CI (.github/workflows/linting.yaml), runs ruff on every push to main / merge across multiple Python versions (3.12, 3.13) and OS (Ubuntu, macOS). CI fails if formatting is wrong, even if someone bypassed pre-commit locally. This acts as a safety net for the whole team.
 
-In a team of one or two people you can keep style consistent in your head. In a larger project with 10+ developers committing daily, inconsistent formatting creates noisy diffs where you can't tell what actually changed vs. what was just reformatted. It will still be in the branch but will appear with a red cross, in a real production system you will have someone assigned for code review, and if it does pass all the test it will then be prossible to merge the branch. Pre-commit hooks enforce a single style automatically so no one has to argue about it in code review.
+In a team of one or two people you can keep style consistent in your head. In a larger project with 10+ developers committing daily, inconsistent formatting creates noisy diffs where you can't tell what actually changed vs. what was just reformatted. Pre-commit hooks enforce a single style automatically so no one has to argue about it in code review.
 
 Documentation matters for onboarding, a new team member should be able to understand what a function does without reading its full implementation. In production systems, undocumented code becomes unmaintainable once the original author leaves.
 
@@ -256,7 +282,7 @@ Documentation matters for onboarding, a new team member should be able to unders
 >
 > Answer:
 
-In total we have implemented 10 tests across 3 active test files. test_model.py (2 tests) tests that the model produces the correct output shape (batch, 2) and that 100 forward passes on the W&B registry model complete within a time limit. test_data.py (3 tests) tests that the dataset correctly loads a .pt tensor file, raises an error when the file is missing, and that the datamodule correctly splits data and returns working dataloaders. test_api.py (5 tests) tests that the FastAPI /predict endpoint returns valid probabilities, correctly rejects out-of-range card values with a 422 error, that the /health endpoint responds, and that the /monitoring/drift endpoint handles missing or insufficient logs correctly.
+In total we have implemented 10 tests across 3 active test files (5 files exist but test_preprocessing.py and test_production.py are empty). test_model.py (2 tests) tests that the model produces the correct output shape (batch, 2) and that 100 forward passes on the W&B registry model complete within a time limit. test_data.py (3 tests) tests that the dataset correctly loads a .pt tensor file, raises an error when the file is missing, and that the datamodule correctly splits data and returns working dataloaders. test_api.py (5 tests) tests that the FastAPI /predict endpoint returns valid probabilities, correctly rejects out-of-range card values with a 422 error, that the /health endpoint responds, and that the /monitoring/drift endpoint handles missing or insufficient logs correctly.
 
 --- question 7 fill here ---
 
@@ -297,7 +323,7 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
-This means main is treated as a protected production branch — no code will pass the test without passing all the workflow, however it keeps the push and update main, an other file will be necessary in production to run first the check and then if it works and someone approve the code review it can be merge to the main.
+This means main is treated as a protected production branch — no code will pass the test without passing all the workflow, however it keeps the push and update main, an other file will be necessary to run first the check and then if it works and someone approve the code review it can be commited.
 
 This is valuable because main always represents a working, deployable state. If a developer introduces a breaking change on a feature branch, it fails CI on the PR and never reaches main. This is especially important in ML projects where a subtle bug — like a wrong input dimension — can silently pass locally but fail in the deployment pipeline. Branches give each developer an isolated workspace, and the PR + CI gate ensures only verified code enters the shared production branch.
 
@@ -325,7 +351,7 @@ In our CI pipeline, the cml_data.yaml workflow uses dvc pull to fetch the data b
 
 ### Question 11
 
-> **Discuss your continuous integration setup. What kind of continuous integration are you running (unittesting,**
+> **Discuss you continuous integration setup. What kind of continuous integration are you running (unittesting,**
 > **linting, etc.)? Do you test multiple operating systems, Python  version etc. Do you make use of caching? Feel free**
 > **to insert a link to one of your GitHub actions workflow.**
 >
@@ -406,7 +432,7 @@ We secured reproducibility through three mechanisms:
 
 2. Fixed data split seed — datamodule.py uses torch.Generator().manual_seed(self.split_seed) with split_seed=42 defined in training_config/default.yaml. This ensures the train/val/test split is identical across runs, so model comparisons are fair.
 
-3. Model artifact logging — after training, the model weights are saved and logged to W&B as a versioned artifact (blackjack-model:v0, v1, etc.). This links the exact weights to the exact config that produced them, and the person can see which hyperparameter has been used.
+3. Model artifact logging — after training, the model weights are saved and logged to W&B as a versioned artifact (blackjack-model:v0, v1, etc.). This links the exact weights to the exact config that produced them.
 
 To reproduce an experiment, one would:
 
@@ -433,17 +459,14 @@ Hydra also saves each run's resolved config to outputs/<date>/<time>/ locally as
 > *As seen in the second image we are also tracking ... and ...*
 >
 > Answer:
-First, we focused on tracking training metrics and model reproducibility. For each training run we logged train loss and validation loss to W&B, which allow us to monitor whether the model is learning correctly and detect overfitting.
+We did not implement hyperparameter sweeps. Instead we focused on tracking training metrics and model reproducibility. For each training run we logged train loss and validation loss to W&B, which allow us to monitor whether the model is learning correctly and detect overfitting.
 
 We also implemented a full model reproducibility pipeline. After each training run, the model is saved as a W&B artifact. When a model is manually given the staging alias in the W&B registry, it automatically triggers a GitHub Actions workflow (stage_model.yaml) that runs a speed test on the model. If it passes, the workflow automatically promotes it to production by adding the production alias. This way the team can always identify which model version is deployed in production and trace it back to the exact training run and hyperparameters that produced it.
-
-Finally, to see the best performance of the models with which parameters works the best, we implemented an hyperparameter optimization on the following parameters learning rate, batch size and hidden dimension. 
 
 Below are screenshots showing our W&B implementation:
 
 ![Losses](figures/log_loss.png)
 ![Reproducibility](figures/repro.png)
-put the picture of the sweep data 
 
 
 --- question 14 fill here ---
@@ -502,7 +525,7 @@ For profiling however, we implemented a dedicated profiling.py script using torc
 
 uv run src/blackjack_predictor/profiling.py
 
-The profiling revealed that for our small model, data loading dominates inference time, which motivated switching from CSV to .pt tensor format for processed data, a concrete improvement driven by profiling results.
+The profiling revealed that for our small model, data loading dominates inference time, which motivated switching from CSV to .pt tensor format for processed data, a concrete improvement driven by profiling results
 
 --- question 16 fill here ---
 
@@ -541,7 +564,12 @@ We used the following three GCP services:
 > *We used the compute engine to run our ... . We used instances with the following hardware: ... and we started the*
 > *using a custom container: ...*
 >
-> Answer: We did not manually provision raw Compute Engine instances (like SSH-ing into a persistent VM). Instead, we used Vertex AI Custom Training Jobs, which dynamically provisions Compute Engine resources under the hood. As seen in our submit_vertex_training.sh script, we trigger training by submitting our custom Docker container (blackjack-train:latest) to Vertex AI. Vertex AI reads our blackjack_train_custom_job.yaml specification, automatically spins up a Compute Engine instance (an e2-standard-4 machine type) to execute the container, and automatically tears down the VM when the training script finishes. This allowed us to leverage GCP's heavy compute power for training without the overhead of manually managing the VM lifecycle or paying for idle compute time.
+> Answer:
+We used Compute Engine indirectly through managed GCP services. Our model training runs as a Vertex AI custom job, defined in `gcloud/vertex/blackjack_train_custom_job.yaml`. Vertex AI provisions the underlying Compute Engine worker for us.
+
+For training, we used one `n1-standard-4` machine with `replicaCount: 1`. This gives 4 vCPUs and 15 GB memory, which was enough for our relatively small blackjack dataset and PyTorch training pipeline. The job runs our Docker image from Artifact Registry and executes `uv run src/blackjack_predictor/train.py`.
+
+For serving, we used Cloud Run rather than managing a VM directly. The API container is deployed in `europe-west1` with 2 CPUs and 2 GiB memory, as specified in `gcloud/vertex/cloudbuild.yaml`. This means GCP handles the compute provisioning, scaling, and lifecycle management for the inference service.
 
 --- question 18 fill here ---
 
@@ -550,10 +578,10 @@ We used the following three GCP services:
 > **Insert 1-2 images of your GCP bucket, such that we can see what data you have stored in it.**
 > **You can take inspiration from [this figure](figures/bucket.png).**
 >
-> Answer:Below is the screenshot of our Google Cloud Storage bucket (`dtumlops-499809-training-data`). The view confirms the successful setup and storage of our project data artifacts, which are managed remotely via DVC for complete data version control and reproducibility.
+> Answer:
+![Images of model in bucket](figures/model.png)
 
-![GCP Bucket Contents](figures/bucket_contents.png)
-
+![Image of data in bucket](figures/data.png)
 --- question 19 fill here ---
 
 ### Question 20
@@ -561,21 +589,19 @@ We used the following three GCP services:
 > **Upload 1-2 images of your GCP artifact registry, such that we can see the different docker images that you have**
 > **stored. You can take inspiration from [this figure](figures/registry.png).**
 >
-> Answer:Below is a screenshot of our Google Cloud Artifact Registry (`dtumlops` repository). It clearly shows our successfully built and versioned Docker images, including `blackjack-api` for our inference endpoints and `blackjack-train` for our training jobs.
-
-![GCP Artifact Registry Contents](figures/registry_contents.png)
+> Answer:
 
 --- question 20 fill here ---
-
+![Image of gcp artifact registry](figures/art_reg.png)
 ### Question 21
 
 > **Upload 1-2 images of your GCP cloud build history, so we can see the history of the images that have been build in**
 > **your project. You can take inspiration from [this figure](figures/build.png).**
 >
-> Answer:Below is a screenshot of our Google Cloud Build history. It shows the automated build executions triggered by our CI/CD pipeline, successfully building our training and API Docker images in the cloud before pushing them to the Artifact Registry.
+> Answer:
+![Image of history of gcp cloud build](figures/cloud_build_his.png)
 
-![Cloud Build History](figures/build.png)
-
+![Image of summary of latest gcp cloud build](figures/cloud_build_sum.png)
 --- question 21 fill here ---
 
 ### Question 22
@@ -590,8 +616,13 @@ We used the following three GCP services:
 > *was because ...*
 >
 > Answer:
+Yes, we mamaged to train the model in the cloud using vertex AI. The training code was packaged into a docker image using train_uv.dockerfile, where the container runs uv run src/blackjack_predictor/train.py. We used Cloud build to build the image and push it to the artifact registry.
 
---- question 22 fill here ---
+The vertex AI job is defined in gcloud/vertex/blackjack_train_custom_job.yaml. The job reads the raw blackjack data from GCS, creates the processed .pt file in GCS if it is missing, trains the PyTorch model, and saves the resulting model weights back to gs://dtumlops-499809-training-data/models/model.pth.
+
+The vertex AI can be launched with the commands:
+uv run invoke cloud-build
+uv run invoke vertex-train
 
 ## Deployment
 
@@ -672,7 +703,7 @@ We used the following three GCP services:
 > *Group member 1 used ..., Group member 2 used ..., in total ... credits was spend during development. The service*
 > *costing the most was ... due to ... . Working in the cloud was ...*
 >
-> Answer:In total, we used approximately 176.72 DKK (Danish Kroner) worth of compute credits during the development of this project. However, because these were covered entirely by GCP credits/savings, our actual out-of-pocket cost was 0.00 DKK.The service that consumed the vast majority of those credits was Compute Engine (172.14 DKK). This is because our automated Vertex AI Custom Training jobs dynamically provisioned Compute Engine VMs behind the scenes to execute our heavy training Docker containers.Overall, working in the cloud was highly beneficial. While setting up permissions, IAM roles, and DVC access initially presented a steep learning curve, the ability to trigger serverless training runs and auto-scaling APIs through GitHub Actions made the final development loop incredibly smooth, reproducible, and professional.
+> Answer:
 
 --- question 27 fill here ---
 
@@ -709,23 +740,6 @@ We implemented a Python script improve_speed.py which loads the saved model, app
 >
 > Answer:
 
-The starting point of the diagram is the local setup, where all development is done. The developer can work on features and, if they do not run a new model, they commit their changes where a pre-commit hook checks the code style. If it passes, they can commit and push their branch.
-
-When a pull request is opened or a push is made to main, it triggers several GitHub Actions workflows:
-
-  Unit tests — runs pytest with coverage on Ubuntu
-  Code linting — runs ruff check and ruff format across Ubuntu, Windows, and macOS on Python 3.12 and 3.13
-  Data test — only triggers when data files or data source code change; pulls data from GCS via DVC, preprocesses it, runs statistics, and posts a CML report as a PR comment
-  Deploy APIs — triggers on every push to main; builds two Docker images (blackjack-api on port 8080 and blackjack-specialized-api using ONNX on port 3000), pushes them to GCP Artifact Registry, deploys both to Cloud Run, then runs Locust load tests (25 users, 2 minutes) against the live URLs and uploads the results as artifacts
-  GCP train and deploy — triggers on push to main when source code, dockerfiles, infra, or config files change; submits a training job to GCP
-  If the developer runs a new model, they can monitor it on W&B. If satisfied, they add the staging alias to the W&B registry, which triggers the Check staged model workflow via a repository_dispatch event. This runs a model speed test and, if it passes, automatically adds the production alias to the model in the W&B registry.
-
-From the user's perspective, they can clone the project from GitHub, run uv sync to install all packages, and dvc pull to get the data locally from GCS. They can also query the model through the API. 
-
-here is an image of our diagram representing the project. 
-
-![Project diagram](figures/machinelearningoperationpipeline.png)
-
 --- question 29 fill here ---
 
 ### Question 30
@@ -739,7 +753,7 @@ here is an image of our diagram representing the project.
 > *The biggest challenges in the project was using ... tool to do ... . The reason for this was ...*
 >
 > Answer:
-The biggest challenge was the DVC data pipeline integration with GitHub CI. We wanted each push to automatically verify the dataset on the cloud, but dvc pull kept failing in GitHub Actions while working locally. Using verbose logs (dvc pull --force -v) we identified two root causes: the data had been uploaded manually to GCS instead of via dvc push, meaning the .dir manifest file was missing from the bucket; and version_aware = true in .dvc/config caused DVC to use GCS version IDs instead of MD5 hashes, breaking the local cache checkout. We fixed it by removing version_aware = true and re-pushing everything properly via dvc push so all required cache files were present. AI helped us to understand the output of the verbose and the error. 
+The biggest challenge was the DVC data pipeline integration with GitHub CI. We wanted each push to automatically verify the dataset on the cloud, but dvc pull kept failing in GitHub Actions while working locally. Using verbose logs (dvc pull --force -v) we identified two root causes: the data had been uploaded manually to GCS instead of via dvc push, meaning the .dir manifest file was missing from the bucket; and version_aware = true in .dvc/config caused DVC to use GCS version IDs instead of MD5 hashes, breaking the local cache checkout. We fixed it by removing version_aware = true and re-pushing everything properly via dvc push so all required cache files were present.
 
 --- question 30 fill here ---
 

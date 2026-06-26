@@ -5,12 +5,9 @@ on:
   push:
     branches: [main]
     paths:
-      - "cloudbuild.yaml"
+      - "gcloud/**"
       - "dockerfiles/train_uv.dockerfile"
       - "dockerfiles/api_uv.dockerfile"
-      - "infra/vertex/**"
-      - "scripts/submit_vertex_training.sh"
-      - "scripts/verify_cloud_run.sh"
       - "src/**"
       - "pyproject.toml"
       - "uv.lock"
@@ -44,12 +41,12 @@ jobs:
         run: |
           gcloud builds submit \
             --project "$PROJECT_ID" \
-            --config cloudbuild.yaml \
+            --config gcloud/vertex/cloudbuild.yaml \
             --substitutions "_TRAIN_IMAGE=$TRAIN_IMAGE"
 
       - name: Verify Cloud Run deployment
         run: |
-          bash scripts/verify_cloud_run.sh | tee cloud-run-verification.txt
+          bash gcloud/vertex/scripts/verify_cloud_run.sh | tee cloud-run-verification.txt
 
       - name: Launch Vertex AI training job
         run: |
@@ -57,7 +54,7 @@ jobs:
             --project "$PROJECT_ID" \
             --region "$REGION" \
             --display-name "blackjack-train" \
-            --config infra/vertex/blackjack_train_custom_job.yaml
+            --config gcloud/vertex/blackjack_train_custom_job.yaml
 
       - name: Upload deployment verification
         uses: actions/upload-artifact@v4

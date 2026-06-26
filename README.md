@@ -78,19 +78,19 @@ The repository includes a Cloud Build pipeline and a Vertex AI custom job defini
 1. Build and deploy the training/API containers:
 
 ```bash
-gcloud builds submit --config cloudbuild.yaml
+gcloud builds submit --config gcloud/vertex/cloudbuild.yaml
 ```
 
 2. Launch training on Vertex AI:
 
 ```bash
-bash scripts/submit_vertex_training.sh
+bash gcloud/vertex/scripts/submit_vertex_training.sh
 ```
 
 3. Verify the deployed Cloud Run API:
 
 ```bash
-bash scripts/verify_cloud_run.sh
+bash gcloud/vertex/scripts/verify_cloud_run.sh
 ```
 
 The GitHub workflow `.github/workflows/gcp_train_deploy.yaml` runs the same path: it builds both containers, deploys the

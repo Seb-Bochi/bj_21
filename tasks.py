@@ -7,6 +7,11 @@ from invoke.tasks import task
 WINDOWS = os.name == "nt"
 PROJECT_NAME = "blackjack_predictor"
 PYTHON_VERSION = "3.12"
+GCP_PROJECT = "dtumlops-499809"
+GCP_REGION = "europe-west1"
+GCLOUD_DIR = "gcloud/vertex"
+CLOUD_BUILD_CONFIG = f"{GCLOUD_DIR}/cloudbuild.yaml"
+VERTEX_JOB_CONFIG = f"{GCLOUD_DIR}/blackjack_train_custom_job.yaml"
 
 
 def uv_command() -> str:
@@ -79,6 +84,86 @@ def docker_build(ctx: Context, progress: str = "plain") -> None:
         pty=not WINDOWS,
     )
     ctx.run(f"docker build -t api:latest . -f dockerfiles/api.dockerfile --progress={progress}", echo=True, pty=not WINDOWS)
+
+
+@task
+def cloud_build(ctx: Context, project: str = GCP_PROJECT, config: str = CLOUD_BUILD_CONFIG) -> None:
+    """Build and push the GCP training/API images with Cloud Build."""
+
+    ctx.run(
+        f"gcloud builds submit --project {project} --config {config}",
+        echo=True,
+        pty=not WINDOWS,
+    )
+
+
+@task
+def vertex_train(
+    ctx: Context,
+    project: str = GCP_PROJECT,
+    region: str = GCP_REGION,
+    config: str = VERTEX_JOB_CONFIG,
+    display_name: str = "blackjack-train",
+) -> None:
+    """Create a Vertex AI custom training job from the checked-in job config."""
+
+    ctx.run(
+        f"gcloud ai custom-jobs create "
+        f"--project {project} "
+        f"--region {region} "
+        f"--display-name {display_name} "
+        f"--config {config}",
+        echo=True,
+        pty=not WINDOWS,
+    )
+
+
+@task
+def cloud_train(
+    ctx: Context,
+    project: str = GCP_PROJECT,
+    region: str = GCP_REGION,
+    build_config: str = CLOUD_BUILD_CONFIG,
+    vertex_config: str = VERTEX_JOB_CONFIG,
+    display_name: str = "blackjack-train",
+) -> None:
+    """Run Cloud Build and then launch the Vertex AI training job."""
+
+    cloud_build(ctx, project=project, config=build_config)
+    vertex_train(ctx, project=project, region=region, config=vertex_config, display_name=display_name)
+
+
+@task
+def vertex_results(
+    ctx: Context,
+    project: str = GCP_PROJECT,
+    region: str = GCP_REGION,
+    limit: int = 5,
+    job_id: str = "",
+    logs: bool = False,
+) -> None:
+    """List recent Vertex AI jobs, or describe/read logs for a specific job id."""
+
+    if job_id:
+        ctx.run(
+            f"gcloud ai custom-jobs describe {job_id} --project {project} --region {region}",
+            echo=True,
+            pty=not WINDOWS,
+        )
+        if logs:
+            ctx.run(
+                f'gcloud logging read "resource.type=ml_job AND resource.labels.job_id={job_id}" '
+                f"--project {project} --limit 100 --format='value(textPayload)'",
+                echo=True,
+                pty=not WINDOWS,
+            )
+        return
+
+    ctx.run(
+        f"gcloud ai custom-jobs list --project {project} --region {region} --sort-by=~createTime --limit={limit}",
+        echo=True,
+        pty=not WINDOWS,
+    )
 
 
 # Documentation commands
