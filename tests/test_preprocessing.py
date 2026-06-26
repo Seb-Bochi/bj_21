@@ -35,8 +35,8 @@ def test_preprocess_filters_push_and_saves_tensor(tmp_path):
     csv_path = _write_sample_csv(raw_dir)
     output_pt = tmp_path / "processed" / "test_processed.pt"
     
-    # Run the preprocessing script
-    preprocess(data_path=csv_path, output_folder=output_pt)
+    # Run the preprocessing script with the corrected 'output_path' argument
+    preprocess(data_path=csv_path, output_path=output_pt)
     
     assert output_pt.exists(), "Processed .pt file was not created."
     
@@ -60,4 +60,5 @@ def test_preprocess_raises_error_on_missing_csv(tmp_path):
     output_pt = tmp_path / "processed.pt"
     
     with pytest.raises(FileNotFoundError):
-        preprocess(data_path=missing_csv, output_folder=output_pt)
+        # Run the preprocessing script with the corrected 'output_path' argument
+        preprocess(data_path=missing_csv, output_path=output_pt)
