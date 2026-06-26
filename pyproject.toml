@@ -74,6 +74,7 @@ explicit = true
 
 [tool.ruff]
 line-length = 150
+line-ending = "lf"
 
 [tool.ruff.lint]
 # E: pycodestyle errors, F: Pyflakes, I: isort (auto-sorting imports)
