@@ -1,6 +1,7 @@
 import pandas as pd
+from evidently.metric_preset import DataDriftPreset, DataQualityPreset, TargetDriftPreset
 from evidently.report import Report
-from evidently.metric_preset import DataDriftPreset, TargetDriftPreset, DataQualityPreset
+
 
 def generate_drift_report(reference_csv: str, current_csv: str, output_path: str = "report.html"):
     # 1. Load reference (e.g., your baseline training data) and current production inputs
