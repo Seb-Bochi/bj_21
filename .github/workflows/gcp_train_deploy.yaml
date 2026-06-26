@@ -56,6 +56,7 @@ jobs:
           gcloud ai custom-jobs create \
             --project "$PROJECT_ID" \
             --region "$REGION" \
+            --display-name "blackjack-train" \
             --config infra/vertex/blackjack_train_custom_job.yaml
 
       - name: Upload deployment verification
