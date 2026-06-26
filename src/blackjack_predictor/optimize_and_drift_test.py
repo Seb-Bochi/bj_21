@@ -92,15 +92,9 @@ def run_optimization_and_drift_pipeline():
         f.write("## 1. Optimization & Latency Benchmark Results\n")
         f.write("| Strategy | Accuracy / Status | Latency (ms/sample) |\n")
         f.write("| --- | --- | --- |\n")
-        f.write(
-            f"| Baseline | {results['Baseline']['Accuracy']:.4f} | {results['Baseline']['Latency_ms_per_sample']:.6f} |\n"
-        )
-        f.write(
-            f"| torch.compile | {results['Torch_Compile']['Accuracy']} | {results['Torch_Compile']['Latency_ms_per_sample']} |\n"
-        )
-        f.write(
-            f"| Quantized (int8) | {results['Quantized_int8']['Accuracy']:.4f} | {results['Quantized_int8']['Latency_ms_per_sample']:.6f} |\n"
-        )
+        f.write(f"| Baseline | {results['Baseline']['Accuracy']:.4f} | {results['Baseline']['Latency_ms_per_sample']:.6f} |\n")
+        f.write(f"| torch.compile | {results['Torch_Compile']['Accuracy']} | {results['Torch_Compile']['Latency_ms_per_sample']} |\n")
+        f.write(f"| Quantized (int8) | {results['Quantized_int8']['Accuracy']:.4f} | {results['Quantized_int8']['Latency_ms_per_sample']:.6f} |\n")
         f.write(f"| ONNX Export | {results['ONNX_Export']['Status']} | N/A |\n\n")
 
         f.write("## 2. Synthetic Data Drift Robustness Evaluation\n")

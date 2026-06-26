@@ -28,9 +28,7 @@ def dataset_statistics(
     assert num_samples == EXPECTED_SIZE, f"Dataset size mismatch: expected {EXPECTED_SIZE}, got {num_samples}"
     lines.append(f"- **Size check:** passed ({num_samples} samples)")
 
-    assert (
-        num_features == EXPECTED_FEATURES
-    ), f"Feature dimension mismatch: expected {EXPECTED_FEATURES}, got {num_features}"
+    assert num_features == EXPECTED_FEATURES, f"Feature dimension mismatch: expected {EXPECTED_FEATURES}, got {num_features}"
     lines.append(f"- **Feature check:** passed ({num_features} features)")
 
     labels = torch.tensor(dataset.labels)
@@ -49,9 +47,7 @@ def dataset_statistics(
     lines.append("| Feature | Mean | Std | Min | Max |")
     lines.append("|---------|------|-----|-----|-----|")
     for i, name in enumerate(feature_names):
-        lines.append(
-            f"| {name} | {X[:, i].mean():.3f} | {X[:, i].std():.3f} " f"| {X[:, i].min():.3f} | {X[:, i].max():.3f} |"
-        )
+        lines.append(f"| {name} | {X[:, i].mean():.3f} | {X[:, i].std():.3f} " f"| {X[:, i].min():.3f} | {X[:, i].max():.3f} |")
 
     report = "\n".join(lines)
     print(report)

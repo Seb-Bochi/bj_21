@@ -49,9 +49,7 @@ def preprocess(data_path: Union[str, Path], output_path: Union[str, Path], targe
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Preprocess Blackjack dataset.")
-    parser.add_argument(
-        "--data_path", type=str, default="data/raw/blkjckhands.csv", help="Path to the raw CSV data file."
-    )
+    parser.add_argument("--data_path", type=str, default="data/raw/blkjckhands.csv", help="Path to the raw CSV data file.")
     parser.add_argument(
         "--output_folder",
         type=str,

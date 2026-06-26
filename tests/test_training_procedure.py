@@ -54,6 +54,4 @@ def test_lightning_training_step():
 
     # 4. Assert weights modified to ensure optimization took place
     updated_weight = model.hidden.weight
-    assert not torch.equal(
-        initial_weight, updated_weight
-    ), "Model training failure: Weights did not update after execution steps."
+    assert not torch.equal(initial_weight, updated_weight), "Model training failure: Weights did not update after execution steps."

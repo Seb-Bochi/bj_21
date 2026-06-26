@@ -49,9 +49,7 @@ def ensure_onnx_artifact_exists(onnx_model_path: Path = ONNX_MODEL_PATH) -> Path
     if onnx_model_path.exists():
         return onnx_model_path
 
-    raise FileNotFoundError(
-        f"Missing ONNX artifact at '{onnx_model_path}'. Run uv run src/blackjack_predictor/train.py to generate it."
-    )
+    raise FileNotFoundError(f"Missing ONNX artifact at '{onnx_model_path}'. Run uv run src/blackjack_predictor/train.py to generate it.")
 
 
 def create_inference_session() -> InferenceSession:
@@ -92,10 +90,7 @@ class BlackjackSpecializedService:
 
         input_features = [payload.dealt_card_1, payload.dealt_card_2, payload.dealer_card]
         if len(input_features) != cfg.model_config.input_dim:
-            raise ValueError(
-                f"Dimension mismatch. Model requires {cfg.model_config.input_dim} features, "
-                f"received {len(input_features)}."
-            )
+            raise ValueError(f"Dimension mismatch. Model requires {cfg.model_config.input_dim} features, " f"received {len(input_features)}.")
 
         input_array = np.asarray([input_features], dtype=np.float32)
         outputs = self.session.run(None, {self.input_name: input_array})

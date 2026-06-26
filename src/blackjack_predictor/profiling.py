@@ -23,11 +23,8 @@ def run_profiling(cfg: DictConfig) -> None:
         record_shapes=True,
         profile_memory=True,
     ) as prof:
-        
         with record_function("dataset_init"):
-            dataset = BlackjackDataset(
-                processed_file=data_path
-            )
+            dataset = BlackjackDataset(processed_file=data_path)
 
         with record_function("dataloader_init"):
             loader = DataLoader(dataset, batch_size=batch_size, shuffle=False)

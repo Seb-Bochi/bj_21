@@ -48,8 +48,7 @@ def serve_backend(ctx: Context, host: str = "127.0.0.1", port: int = 8000, reloa
     """Serve the sample FastAPI backend."""
     reload_flag = " --reload" if reload else ""
     ctx.run(
-        f"{uv_command()} run python -m uvicorn samples.frontend_backend.backend:app "
-        f"--host {host} --port {port}{reload_flag}",
+        f"{uv_command()} run python -m uvicorn samples.frontend_backend.backend:app " f"--host {host} --port {port}{reload_flag}",
         echo=True,
         pty=not WINDOWS,
     )
@@ -79,18 +78,14 @@ def docker_build(ctx: Context, progress: str = "plain") -> None:
         echo=True,
         pty=not WINDOWS,
     )
-    ctx.run(
-        f"docker build -t api:latest . -f dockerfiles/api.dockerfile --progress={progress}", echo=True, pty=not WINDOWS
-    )
+    ctx.run(f"docker build -t api:latest . -f dockerfiles/api.dockerfile --progress={progress}", echo=True, pty=not WINDOWS)
 
 
 # Documentation commands
 @task
 def build_docs(ctx: Context) -> None:
     """Build documentation."""
-    ctx.run(
-        f"{uv_command()} run mkdocs build --config-file docs/mkdocs.yaml --site-dir build", echo=True, pty=not WINDOWS
-    )
+    ctx.run(f"{uv_command()} run mkdocs build --config-file docs/mkdocs.yaml --site-dir build", echo=True, pty=not WINDOWS)
 
 
 @task

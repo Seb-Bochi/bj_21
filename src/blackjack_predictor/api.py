@@ -51,9 +51,7 @@ async def lifespan(app: FastAPI):
         )
 
         if not MODEL_PATH.exists():
-            raise FileNotFoundError(
-                f"Trained model weights missing at '{MODEL_PATH}'. Please run training pipelines first."
-            )
+            raise FileNotFoundError(f"Trained model weights missing at '{MODEL_PATH}'. Please run training pipelines first.")
 
         # Map parameters explicitly to CPU since Cloud Run instances lack GPU hardware
         state_dict = torch.load(MODEL_PATH, map_location=torch.device("cpu"), weights_only=True)
@@ -160,9 +158,7 @@ def detect_production_drift():
     # Pull reference frame properties
     ref_df = pd.read_csv(reference_path)
     # Ensure validation targets features match features parsed by payload arrays
-    ref_features = ref_df[["card1", "card2", "dealcard1"]].rename(
-        columns={"card1": "f1", "card2": "f2", "dealcard1": "f3"}
-    )
+    ref_features = ref_df[["card1", "card2", "dealcard1"]].rename(columns={"card1": "f1", "card2": "f2", "dealcard1": "f3"})
 
     # Compile text logs back into structured memory lists
     prod_records = []

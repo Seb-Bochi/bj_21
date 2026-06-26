@@ -15,7 +15,6 @@ def sweep_iteration():
     wandb.init()
     config = wandb.config
 
-
     dm = BlackjackDataModule(
         data_path=Path("data/processed/blkjckhands_processed.pt"),
         batch_size=config.batch_size,
@@ -36,23 +35,22 @@ def sweep_iteration():
 
     wandb_logger = WandbLogger()
 
-
     trainer = Trainer(
-        max_epochs=3,  
+        max_epochs=3,
         accelerator="auto",
         devices=1,
         logger=wandb_logger,
-        enable_checkpointing=False,  
+        enable_checkpointing=False,
     )
 
     trainer.fit(task, datamodule=dm)
 
 
 sweep_config = {
-    "method": "bayes", 
+    "method": "bayes",
     "name": "blackjack-hyperparameter-sweep",
     "metric": {
-        "name": "train_loss",  
+        "name": "train_loss",
         "goal": "minimize",
     },
     "parameters": {
@@ -69,7 +67,6 @@ if __name__ == "__main__":
 
     print(f"Sweep ID generated: {sweep_id}")
     print("Starting Sweep Agent (Running 3 iterations for demonstration)...")
-
 
     wandb.agent(sweep_id, function=sweep_iteration, count=3)
 

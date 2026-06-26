@@ -33,9 +33,7 @@ class BlackjackDataModule(LightningDataModule):
         test_size = total_len - train_size - val_size
 
         generator = torch.Generator().manual_seed(self.split_seed)
-        self.train_dataset, self.val_dataset, self.test_dataset = random_split(
-            full_dataset, [train_size, val_size, test_size], generator=generator
-        )
+        self.train_dataset, self.val_dataset, self.test_dataset = random_split(full_dataset, [train_size, val_size, test_size], generator=generator)
 
     # ==================== M29: DISTRIBUTED DATA LOADING ====================
     def train_dataloader(self):
