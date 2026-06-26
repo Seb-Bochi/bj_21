@@ -7,6 +7,10 @@ from pytorch_lightning.loggers import WandbLogger
 from blackjack_predictor.data_ import BlackjackDataModule
 from blackjack_predictor.models.ffnn import SimpleFNN
 from blackjack_predictor.tasks import PredictionTask
+from src.blackjack_predictor.helpers.logger import get_logger
+
+
+logger = get_logger(__name__)
 
 
 def sweep_iteration():
@@ -14,6 +18,9 @@ def sweep_iteration():
 
     wandb.init()
     config = wandb.config
+    logger.info(
+        f"Starting sweep iteration with batch_size={config.batch_size}, hidden_dim={config.hidden_dim}, lr={config.lr}"
+    )
 
     dm = BlackjackDataModule(
         data_path=Path("data/processed/blkjckhands_processed.pt"),
@@ -43,6 +50,7 @@ def sweep_iteration():
         enable_checkpointing=False,
     )
 
+    logger.info("Starting sweep training run")
     trainer.fit(task, datamodule=dm)
 
 
@@ -61,13 +69,13 @@ sweep_config = {
 }
 
 if __name__ == "__main__":
-    print("Initializing W&B Sweep Configuration...")
+    logger.info("Initializing W&B sweep configuration")
 
     sweep_id = wandb.sweep(sweep_config, project="project_dtu_mlops")
 
-    print(f"Sweep ID generated: {sweep_id}")
-    print("Starting Sweep Agent (Running 3 iterations for demonstration)...")
+    logger.info(f"Sweep ID generated: {sweep_id}")
+    logger.info("Starting sweep agent for 3 iterations")
 
     wandb.agent(sweep_id, function=sweep_iteration, count=3)
 
-    print("Sweep pipeline complete!")
+    logger.info("Sweep pipeline complete")

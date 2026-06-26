@@ -6,12 +6,17 @@ from omegaconf import DictConfig
 from pytorch_lightning.loggers import WandbLogger
 
 from blackjack_predictor.data_ import BlackjackDataModule
+from src.blackjack_predictor.helpers.logger import get_logger
 from blackjack_predictor.models.ffnn import SimpleFNN
+
+
+logger = get_logger(__name__)
 
 
 @hydra.main(config_path="../../configs", config_name="config", version_base=None)
 def evaluate(cfg: DictConfig) -> float:
     model_path = Path(cfg.data_config.model_path)
+    logger.info(f"Starting evaluation with model at {model_path}")
 
     dm = BlackjackDataModule(
         data_path=cfg.data_config.processed_path,
@@ -34,6 +39,7 @@ def evaluate(cfg: DictConfig) -> float:
     state_dict = torch.load(model_path, map_location=torch.device("cpu"))
     model.load_state_dict(state_dict)
     model.eval()
+    logger.info(f"Loaded model checkpoint from {model_path}")
 
     wandb_logger = WandbLogger(
         project="project_dtu_mlops",
@@ -57,7 +63,7 @@ def evaluate(cfg: DictConfig) -> float:
             total_predictions += actions.size(0)
 
     accuracy = correct_predictions / total_predictions if total_predictions else 0.0
-    print(f"Test Accuracy: {accuracy:.4f}")
+    logger.info(f"Test accuracy: {accuracy:.4f}")
 
     wandb_logger.experiment.log({"eval/accuracy": accuracy})
     wandb_logger.experiment.finish()

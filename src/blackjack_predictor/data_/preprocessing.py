@@ -5,7 +5,7 @@ from typing import Final, Union
 import pandas as pd
 import torch
 
-from blackjack_predictor.logger import get_logger
+from src.blackjack_predictor.helpers.logger import get_logger
 
 logger = get_logger(__name__)
 FEATURE_COLUMNS: Final[list[str]] = ["card1", "card2", "dealcard1"]

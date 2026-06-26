@@ -92,7 +92,7 @@ jobs:
           API_TYPE: fastapi
         run: |
           mkdir -p locust-results/blackjack-api
-          uv run locust -f tests/locustfile.py \
+          uv run locust -f tests/performancetests/locustfile.py \
             --headless \
             --users "$LOCUST_USERS" \
             --spawn-rate "$LOCUST_SPAWN_RATE" \
@@ -143,7 +143,7 @@ jobs:
           API_TYPE: specialized
         run: |
           mkdir -p locust-results/blackjack-specialized-api
-          uv run locust -f tests/locustfile.py \
+          uv run locust -f tests/performancetests/locustfile.py \
             --headless \
             --users "$LOCUST_USERS" \
             --spawn-rate "$LOCUST_SPAWN_RATE" \
