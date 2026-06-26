@@ -175,13 +175,12 @@ A new team member would run:
 git clone <repo>
 cd bj_21
 uv sync --locked --dev
-That's it. uv sync --locked reads the lockfile and installs the exact same versions of every dependency
 
 For the environment to be fully functional they also need:
 
 Data — run dvc pull to fetch the dataset from Google Cloud Storage (requires GCP credentials)
 W&B — run wandb login and paste their API key
-Pre-commit hooks — run pre-commit install to enable automatic code formatting on commit
+Pre-commit hooks — for developper if they want to participate in the project, run pre-commit install to enable automatic code formatting on commit
 The lockfile (uv.lock) is committed to the repository, so the environment is fully reproducible across machines and operating systems — the same command on Mac, Linux, or Windows gives an identical Python environment.
 
 
@@ -202,11 +201,11 @@ The lockfile (uv.lock) is committed to the repository, so the environment is ful
 >
 > Answer:
 
-From the cookiecutter template we kept the overall structure: src/, tests/, models/, configs/, dockerfiles/, docs/, reports/, notebooks/, .github/workflows/, .pre-commit-config.yaml, pyproject.toml and .gitignore.
+We use the template given by this course. From the cookiecutter template we kept the overall structure: src/, tests/, models/, configs/, dockerfiles/, docs/, reports/, notebooks/, .github/workflows/, .pre-commit-config.yaml, pyproject.toml and .gitignore.
 
 We filled out the src/blackjack_predictor/ package with train.py, evaluate.py, tasks.py, api.py, improve_speed.py, profiling.py, run_sweep.py and a models/ subfolder containing ffnn.py. We also added a data_/ subfolder with dataset.py, datamodule.py, preprocessing.py and dataset_statistics.py. The tests/ folder was filled with test_model.py, test_data.py, test_api.py and test_production.py.
 
-We deviated from the template in several ways. We renamed project_name to blackjack_predictor and split the data logic into a dedicated data_/ subpackage instead of a single data.py. We added a configs/ folder with Hydra config groups (model_config/, training_config/, data_config/, profiling_config/) which was not in the template. We also added .dvc/ and data.dvc for dataset versioning, a cloudbuild.yaml for GCP deployment, and additional GitHub Actions workflows (cml_data.yaml, stage_model.yaml) beyond the template's linting.yaml and tests.yaml
+We deviated from the template in several ways. We added a configs/ folder with Hydra config groups (model_config/, training_config/, data_config/, profiling_config/) which was not in the template. We also added .dvc/ and data.dvc for dataset versioning, a cloudbuild.yaml for GCP deployment, and additional GitHub Actions workflows (cml_data.yaml, stage_model.yaml, linting.yaml, tests.yaml, gcp_train_deploy.yaml, deploy_apis.yaml) beyond the template's linting.yaml and tests.yaml
 
 ### Question 6
 
@@ -256,7 +255,19 @@ Documentation matters for onboarding, a new team member should be able to unders
 >
 > Answer:
 
-In total we have implemented 10 tests across 3 active test files. test_model.py (2 tests) tests that the model produces the correct output shape (batch, 2) and that 100 forward passes on the W&B registry model complete within a time limit. test_data.py (3 tests) tests that the dataset correctly loads a .pt tensor file, raises an error when the file is missing, and that the datamodule correctly splits data and returns working dataloaders. test_api.py (5 tests) tests that the FastAPI /predict endpoint returns valid probabilities, correctly rejects out-of-range card values with a 422 error, that the /health endpoint responds, and that the /monitoring/drift endpoint handles missing or insufficient logs correctly.
+In total we have implemented 15 tests across 6 active test files.
+
+test_model.py (2 tests) — tests that the model produces the correct output shape (batch, 2), and that 100 forward passes on the W&B registry model complete within a time limit.
+
+test_data.py (2 tests) — tests that the dataset correctly loads a .pt tensor file, and raises a FileNotFoundError when the file is missing.
+
+test_api.py (7 tests) — tests that the FastAPI /predict endpoint returns valid probabilities and logs the result, correctly rejects out-of-range card values with a 422 error, that the specialized ONNX API returns valid probabilities, accepts flat JSON over HTTP, rejects out-of-range values, and that ensure_onnx_artifact_exists correctly returns an existing path or raises FileNotFoundError when missing.
+
+test_onnx_alignment.py (1 test) — tests that the ONNX exported model produces the same predictions as the original PyTorch model.
+
+test_training_procedure.py (1 test) — tests that a full PyTorch Lightning training step runs without errors.
+
+test_preprocessing.py (2 tests) — tests that the preprocessing correctly filters, processes and saves a tensor file, and raises an error when the input CSV is missing
 
 --- question 7 fill here ---
 
@@ -296,7 +307,7 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
-This means main is treated as a protected production branch — no code will pass the test without passing all the workflow, however it keeps the push and update main, an other file will be necessary in production to run first the check and then if it works and someone approve the code review it can be merge to the main.
+This means main is treated as a protected production branch — no code will pass the test without passing all the workflow, however it keeps the push and update main, an other file will be necessary in production to run first the tests and then if it works and someone approve the code review it can be merge to the main.
 
 This is valuable because main always represents a working, deployable state. If a developer introduces a breaking change on a feature branch, it fails CI on the PR and never reaches main. This is especially important in ML projects where a subtle bug — like a wrong input dimension — can silently pass locally but fail in the deployment pipeline. Branches give each developer an isolated workspace, and the PR + CI gate ensures only verified code enters the shared production branch.
 
@@ -336,17 +347,20 @@ In our CI pipeline, the cml_data.yaml workflow uses dvc pull to fetch the data b
 > *here: <weblink>*
 >
 > Answer:
-We have organized our continuous integration into 4 separate GitHub Actions workflow files:
+We have organized our continuous integration into 6 separate GitHub Actions workflow files:
 
-1. linting.yaml — runs ruff for code formatting and style checks on every push. It runs across a matrix of 3 operating systems (Ubuntu, macOS, windows) and 2 Python versions (3.12, 3.13), giving 6 parallel jobs. This ensures our code is compatible across environments.
+linting.yaml — runs ruff check and ruff format --check on every push and pull request to main. It runs across a matrix of 3 operating systems (Ubuntu, macOS, Windows) and 2 Python versions (3.12 and 3.13), giving 6 parallel jobs. It uses astral-sh/setup-uv with enable-cache: true to cache the uv package download cache.
 
-2. tests.yaml — runs pytest with coverage on every push, executing unit tests for the model forward pass, dataset loading, and API endpoints. It uses actions/cache to cache the .venv virtual environment keyed on the uv.lock hash, so dependencies are only reinstalled when they actually change — significantly speeding up CI runs.
+tests.yaml — runs pytest with coverage reporting on every push and pull request to main, on Ubuntu only with Python 3.12. It uses actions/cache to cache the .venv virtual environment keyed on the uv.lock hash, so dependencies are only reinstalled when they actually change.
 
-3. cml_data.yaml — triggers on pull requests to main. It authenticates with GCP, pulls the versioned dataset via dvc pull, runs preprocessing, computes dataset statistics, and posts a markdown report as a PR comment using the CML framework. This gives reviewers visibility into data quality before merging.
+cml_data.yaml — triggers on push or pull request to main only when data or data source files change. It authenticates with GCP, pulls the versioned dataset via dvc pull from GCS, runs preprocessing, computes dataset statistics, and posts a markdown report as a PR comment using the CML framework.
 
-4. stage_model.yaml — triggered by a repository_dispatch event sent by W&B when a model is given the staging alias in the model registry. It runs a speed test (test_model_speed) on the staged model and, if it passes, automatically promotes it to production by calling tests/test_production.py. This creates a fully automated model deployment pipeline.
+stage_model.yaml — triggered by a repository_dispatch event sent by W&B when a model receives the staging alias. It runs a speed test on the staged model and, if it passes, automatically promotes it to production via tests/test_production.py.
 
-All workflows use astral-sh/setup-uv with enable-cache: true and uv sync --locked to ensure reproducible, fast dependency installation across all runs.
+deploy_apis.yaml — triggers on every push to main. It builds two Docker images (blackjack-api and blackjack-specialized-api), pushes them to GCP Artifact Registry, deploys both to Cloud Run, and runs Locust load tests against the live endpoints.
+
+gcp_train_deploy.yaml — triggers on push to main when source code, dockerfiles, or config files change. It submits a training job to GCP Vertex AI and redeploys the API.
+
 --- question 11 fill here ---
 
 ## Running code and tracking experiments
@@ -401,11 +415,11 @@ Hydra automatically logs all hyperparameters to W&B and saves run outputs to tim
 > Answer:
 We secured reproducibility through three mechanisms:
 
-1. Hydra config logging — every experiment run serializes the full config to W&B via OmegaConf.to_container(cfg, resolve=True). This means every W&B run stores the exact lr, batch_size, max_epochs, hidden_dim, and all other parameters used.
+Hydra config logging — every experiment run serializes the full config to W&B via OmegaConf.to_container(cfg, resolve=True). This means every W&B run stores the exact lr, batch_size, max_epochs, hidden_dim, and all other parameters used.
 
-2. Fixed data split seed — datamodule.py uses torch.Generator().manual_seed(self.split_seed) with split_seed=42 defined in training_config/default.yaml. This ensures the train/val/test split is identical across runs, so model comparisons are fair.
+Fixed data split seed — datamodule.py uses torch.Generator().manual_seed(self.split_seed) with split_seed=42 defined in training_config/default.yaml. This ensures the train/val/test split is identical across runs, so model comparisons are fair.
 
-3. Model artifact logging — after training, the model weights are saved and logged to W&B as a versioned artifact (blackjack-model:v0, v1, etc.). This links the exact weights to the exact config that produced them, and the person can see which hyperparameter has been used.
+Model artifact logging — after training, the model weights are saved and logged to W&B as a versioned artifact (blackjack-model:v0, v1, etc.). This links the exact weights to the exact config that produced them, and the person can see which hyperparameter has been used.
 
 To reproduce an experiment, one would:
 
