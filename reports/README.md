@@ -672,7 +672,7 @@ We used the following three GCP services:
 > *Group member 1 used ..., Group member 2 used ..., in total ... credits was spend during development. The service*
 > *costing the most was ... due to ... . Working in the cloud was ...*
 >
-> Answer:
+> Answer:In total, we used approximately 176.72 DKK (Danish Kroner) worth of compute credits during the development of this project. However, because these were covered entirely by GCP credits/savings, our actual out-of-pocket cost was 0.00 DKK.The service that consumed the vast majority of those credits was Compute Engine (172.14 DKK). This is because our automated Vertex AI Custom Training jobs dynamically provisioned Compute Engine VMs behind the scenes to execute our heavy training Docker containers.Overall, working in the cloud was highly beneficial. While setting up permissions, IAM roles, and DVC access initially presented a steep learning curve, the ability to trigger serverless training runs and auto-scaling APIs through GitHub Actions made the final development loop incredibly smooth, reproducible, and professional.
 
 --- question 27 fill here ---
 
