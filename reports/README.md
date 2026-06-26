@@ -550,7 +550,9 @@ We used the following three GCP services:
 > **Insert 1-2 images of your GCP bucket, such that we can see what data you have stored in it.**
 > **You can take inspiration from [this figure](figures/bucket.png).**
 >
-> Answer:
+> Answer:Below is the screenshot of our Google Cloud Storage bucket (`dtumlops-499809-training-data`). The view confirms the successful setup and storage of our project data artifacts, which are managed remotely via DVC for complete data version control and reproducibility.
+
+![GCP Bucket Contents](figures/bucket_contents.png)
 
 --- question 19 fill here ---
 
@@ -559,7 +561,9 @@ We used the following three GCP services:
 > **Upload 1-2 images of your GCP artifact registry, such that we can see the different docker images that you have**
 > **stored. You can take inspiration from [this figure](figures/registry.png).**
 >
-> Answer:
+> Answer:Below is a screenshot of our Google Cloud Artifact Registry (`dtumlops` repository). It clearly shows our successfully built and versioned Docker images, including `blackjack-api` for our inference endpoints and `blackjack-train` for our training jobs.
+
+![GCP Artifact Registry Contents](figures/registry_contents.png)
 
 --- question 20 fill here ---
 
@@ -568,7 +572,9 @@ We used the following three GCP services:
 > **Upload 1-2 images of your GCP cloud build history, so we can see the history of the images that have been build in**
 > **your project. You can take inspiration from [this figure](figures/build.png).**
 >
-> Answer:
+> Answer:Below is a screenshot of our Google Cloud Build history. It shows the automated build executions triggered by our CI/CD pipeline, successfully building our training and API Docker images in the cloud before pushing them to the Artifact Registry.
+
+![Cloud Build History](figures/build.png)
 
 --- question 21 fill here ---
 
