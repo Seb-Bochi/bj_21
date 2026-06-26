@@ -5,6 +5,7 @@ from typing import Any
 
 import requests
 import streamlit as st
+
 from blackjack_predictor.api import app
 
 __all__ = ["app"]
