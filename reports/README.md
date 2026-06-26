@@ -146,7 +146,7 @@ will check the repositories and the code to verify your answers.
 > *We used the third-party framework ... in our project. We used functionality ... and functionality ... from the*
 > *package to do ... and ... in our project*.
 >
-> Answer: no we essentially used the course libraries, they are already very complete and can make put the project as far as possible.
+> Answer: no we essentially used the course libraries, they are already very complete and can take the project as far as possible.
 
 --- question 3 fill here ---
 
@@ -541,7 +541,7 @@ We used the following three GCP services:
 > *We used the compute engine to run our ... . We used instances with the following hardware: ... and we started the*
 > *using a custom container: ...*
 >
-> Answer:
+> Answer: We did not manually provision raw Compute Engine instances (like SSH-ing into a persistent VM). Instead, we used Vertex AI Custom Training Jobs, which dynamically provisions Compute Engine resources under the hood. As seen in our submit_vertex_training.sh script, we trigger training by submitting our custom Docker container (blackjack-train:latest) to Vertex AI. Vertex AI reads our blackjack_train_custom_job.yaml specification, automatically spins up a Compute Engine instance (an e2-standard-4 machine type) to execute the container, and automatically tears down the VM when the training script finishes. This allowed us to leverage GCP's heavy compute power for training without the overhead of manually managing the VM lifecycle or paying for idle compute time.
 
 --- question 18 fill here ---
 
