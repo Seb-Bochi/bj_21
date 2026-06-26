@@ -5,10 +5,9 @@ from pytorch_lightning import Trainer
 from pytorch_lightning.loggers import WandbLogger
 
 from blackjack_predictor.data_ import BlackjackDataModule
+from blackjack_predictor.helpers.logger import get_logger
 from blackjack_predictor.models.ffnn import SimpleFNN
 from blackjack_predictor.tasks import PredictionTask
-from src.blackjack_predictor.helpers.logger import get_logger
-
 
 logger = get_logger(__name__)
 
@@ -18,9 +17,7 @@ def sweep_iteration():
 
     wandb.init()
     config = wandb.config
-    logger.info(
-        f"Starting sweep iteration with batch_size={config.batch_size}, hidden_dim={config.hidden_dim}, lr={config.lr}"
-    )
+    logger.info(f"Starting sweep iteration with batch_size={config.batch_size}, hidden_dim={config.hidden_dim}, lr={config.lr}")
 
     dm = BlackjackDataModule(
         data_path=Path("data/processed/blkjckhands_processed.pt"),

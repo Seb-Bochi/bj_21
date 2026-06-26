@@ -8,7 +8,7 @@ from hydra import compose, initialize_config_dir
 from onnxruntime import InferenceSession
 from pydantic import BaseModel, Field
 
-from src.blackjack_predictor.helpers.export_onnx import ONNX_MODEL_PATH
+from blackjack_predictor.helpers.export_onnx import ONNX_MODEL_PATH
 
 CONFIGS_PATH = Path(__file__).resolve().parents[3] / "configs"
 

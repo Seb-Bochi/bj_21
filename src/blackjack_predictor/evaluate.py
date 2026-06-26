@@ -6,9 +6,8 @@ from omegaconf import DictConfig
 from pytorch_lightning.loggers import WandbLogger
 
 from blackjack_predictor.data_ import BlackjackDataModule
-from src.blackjack_predictor.helpers.logger import get_logger
+from blackjack_predictor.helpers.logger import get_logger
 from blackjack_predictor.models.ffnn import SimpleFNN
-
 
 logger = get_logger(__name__)
 
