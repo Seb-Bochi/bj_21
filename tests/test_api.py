@@ -8,8 +8,8 @@ import torch
 from fastapi.testclient import TestClient
 from pydantic import ValidationError
 
-import blackjack_predictor.api as api
-import blackjack_predictor.api_specialized as api_specialized
+import blackjack_predictor.api.api as api
+import blackjack_predictor.api.api_specialized as api_specialized
 
 
 class FakeModel:
@@ -104,7 +104,7 @@ def test_predict_rejects_out_of_range_cards_with_422(monkeypatch, tmp_path) -> N
     assert read_log_lines(log_file) == []
 
 
-def test_specialized_predict_returns_probabilities_and_logs_result(monkeypatch, tmp_path) -> None:
+def test_specialized_predict_returns_probabilities_and_logs_result(monkeypatch) -> None:
     fake_session = FakeSession(np.asarray([[0.2, 1.4]], dtype=np.float32))
 
     monkeypatch.setattr(api_specialized, "create_inference_session", lambda: fake_session)
@@ -122,7 +122,40 @@ def test_specialized_predict_returns_probabilities_and_logs_result(monkeypatch, 
     assert fake_session.last_inputs["input"].tolist() == [[10.0, 7.0, 6.0]]
 
 
-def test_specialized_predict_rejects_out_of_range_cards_with_422(monkeypatch, tmp_path) -> None:
+def test_specialized_predict_accepts_flat_json_body_over_http(monkeypatch) -> None:
+    fake_session = FakeSession(np.asarray([[0.2, 1.4]], dtype=np.float32))
+
+    monkeypatch.setattr(api_specialized, "create_inference_session", lambda: fake_session)
+
+    with TestClient(api_specialized.BlackjackSpecializedService.to_asgi(is_main=False)) as client:
+        response = client.post(
+            "/predict",
+            json={"dealt_card_1": 10, "dealt_card_2": 7, "dealer_card": 6},
+        )
+
+        invalid_response = client.post(
+            "/predict",
+            json={"dealt_card_1": -1, "dealt_card_2": 7, "dealer_card": 6},
+        )
+
+    assert response.status_code == 200
+
+    payload = response.json()
+    assert set(payload) == {"loss_probability", "win_probability", "prediction"}
+    assert payload["prediction"] is True
+    assert 0.0 <= payload["loss_probability"] <= 1.0
+    assert 0.0 <= payload["win_probability"] <= 1.0
+    assert payload["loss_probability"] + payload["win_probability"] == pytest.approx(1.0)
+    assert fake_session.called is True
+    assert fake_session.last_inputs["input"].tolist() == [[10.0, 7.0, 6.0]]
+
+    assert invalid_response.status_code == 400
+
+    detail = invalid_response.json()["detail"]
+    assert any(error["loc"][-1] == "dealt_card_1" for error in detail)
+
+
+def test_specialized_predict_rejects_out_of_range_cards_with_422(monkeypatch) -> None:
     fake_session = FakeSession(np.asarray([[0.2, 1.4]], dtype=np.float32))
 
     monkeypatch.setattr(api_specialized, "create_inference_session", lambda: fake_session)

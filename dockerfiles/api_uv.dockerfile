@@ -20,4 +20,4 @@ RUN uv sync --frozen
 ENV PATH="/.venv/bin:$PATH"
 ENV PYTHONPATH="/src"
 
-CMD ["sh", "-c", "uvicorn blackjack_predictor.api:app --host 0.0.0.0 --port ${PORT:-8080}"]
+CMD ["sh", "-c", "uvicorn blackjack_predictor.api.api:app --host 0.0.0.0 --port ${PORT:-8080}"]

@@ -8,7 +8,7 @@ from evidently import Report
 from evidently.presets import DataDriftPreset
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import RedirectResponse
-from hydra import compose, initialize
+from hydra import compose, initialize_config_dir
 from prometheus_fastapi_instrumentator import Instrumentator
 from pydantic import BaseModel, Field
 
@@ -21,8 +21,10 @@ except ImportError:
 
 from blackjack_predictor.models.ffnn import SimpleFNN
 
+CONFIGS_PATH = Path(__file__).resolve().parents[3] / "configs"
+
 try:
-    with initialize(version_base=None, config_path="../../configs"):
+    with initialize_config_dir(version_base=None, config_dir=str(CONFIGS_PATH)):
         cfg = compose(config_name="config")
 except Exception as e:
     raise RuntimeError(f"Failed to load Hydra configuration globally: {e}")

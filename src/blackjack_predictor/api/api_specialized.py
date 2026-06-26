@@ -4,14 +4,16 @@ from pathlib import Path
 
 import bentoml
 import numpy as np
-from hydra import compose, initialize
+from hydra import compose, initialize_config_dir
 from onnxruntime import InferenceSession
 from pydantic import BaseModel, Field
 
 from blackjack_predictor.export_onnx import ONNX_MODEL_PATH
 
+CONFIGS_PATH = Path(__file__).resolve().parents[3] / "configs"
+
 try:
-    with initialize(version_base=None, config_path="../../configs"):
+    with initialize_config_dir(version_base=None, config_dir=str(CONFIGS_PATH)):
         cfg = compose(config_name="config")
 except Exception as exc:
     raise RuntimeError(f"Failed to load Hydra configuration globally: {exc}") from exc
@@ -101,17 +103,23 @@ class BlackjackSpecializedService:
         return input_features, logits[0]
 
     @bentoml.api(route="/predict")
-    async def predict(self, payload: InferenceRequest) -> InferenceResponse:
-        """Run blackjack inference and write a production log row."""
+    async def predict(self, payload: InferenceRequest, /) -> InferenceResponse:
+        """Run blackjack inference for a flat JSON request payload."""
 
-        input_features, logits = self._predict_logits(payload)
-        probabilities = compute_probabilities(logits)
-        predicted_class = int(np.argmax(logits))
+        return predict_from_payload(self, payload)
 
-        response_data = InferenceResponse(
-            loss_probability=probabilities[0],
-            win_probability=probabilities[1],
-            prediction=bool(predicted_class),
-        )
 
-        return response_data
+def predict_from_payload(service: BlackjackSpecializedService, payload: InferenceRequest) -> InferenceResponse:
+    """Run blackjack inference using the specialized ONNX runtime session."""
+
+    input_features, logits = service._predict_logits(payload)
+    probabilities = compute_probabilities(logits)
+    predicted_class = int(np.argmax(logits))
+
+    response_data = InferenceResponse(
+        loss_probability=probabilities[0],
+        win_probability=probabilities[1],
+        prediction=bool(predicted_class),
+    )
+
+    return response_data

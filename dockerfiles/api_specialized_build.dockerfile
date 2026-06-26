@@ -22,4 +22,4 @@ RUN uv sync --frozen
 
 EXPOSE 3000
 
-CMD ["sh", "-c", "uv run bentoml serve blackjack_predictor.api_specialized:BlackjackSpecializedService --host 0.0.0.0 --port ${PORT}"]
+CMD ["sh", "-c", "uv run bentoml serve blackjack_predictor.api.api_specialized:BlackjackSpecializedService --host 0.0.0.0 --port ${PORT}"]
