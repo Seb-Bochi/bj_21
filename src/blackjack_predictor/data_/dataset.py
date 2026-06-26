@@ -10,9 +10,6 @@ class BlackjackDataset(Dataset):
         self.transform = transform
 
         data = torch.load(processed_file, weights_only=True)
-
-        # We removed the [:, [0, 1, 6]] slice because preprocessing.py
-        # already filters the tensor down to the exact 3 features we need!
         self.X = data["X"]
         self.y = data["y"]
 

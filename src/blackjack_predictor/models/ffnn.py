@@ -28,7 +28,6 @@ class SimpleFNN(nn.Module):
 
 
 if __name__ == "__main__":
-    # Test the model with your 13-dimensional input
     model = SimpleFNN(input_dim=3, hidden_dim=128)
     x = torch.rand(1, 13)
     print(f"Output shape of model: {model(x).shape}")

@@ -15,7 +15,7 @@ from blackjack_predictor.tasks import PredictionTask
 
 @hydra.main(config_path="../../configs", config_name="config", version_base=None)
 def train(cfg: DictConfig) -> None:
-    """Trains the model using PyTorch Lightning, Hydra, and W&B."""
+    """Train the model with PyTorch Lightning, Hydra, and W&B."""
 
     processed_data_path = Path(cfg.data_config.processed_path)
     model_path = Path(cfg.data_config.model_path)
@@ -46,7 +46,6 @@ def train(cfg: DictConfig) -> None:
         job_type="train",
     )
 
-    # Detect if multiple GPUs are available to enforce explicit DDP distributed strategy
     num_gpus = torch.cuda.device_count()
     if num_gpus > 1:
         selected_strategy = "ddp"
@@ -91,4 +90,4 @@ def train(cfg: DictConfig) -> None:
 
 if __name__ == "__main__":
     train()
-# test
+

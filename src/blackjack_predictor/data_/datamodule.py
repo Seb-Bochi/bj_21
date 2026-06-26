@@ -17,7 +17,6 @@ class BlackjackDataModule(LightningDataModule):
         self.split_seed = split_seed
         self.num_workers = num_workers
 
-        # Initialize dataset attributes
         self.train_dataset = None
         self.val_dataset = None
         self.test_dataset = None
@@ -35,7 +34,6 @@ class BlackjackDataModule(LightningDataModule):
         generator = torch.Generator().manual_seed(self.split_seed)
         self.train_dataset, self.val_dataset, self.test_dataset = random_split(full_dataset, [train_size, val_size, test_size], generator=generator)
 
-    # ==================== M29: DISTRIBUTED DATA LOADING ====================
     def train_dataloader(self):
         return DataLoader(
             self.train_dataset,
@@ -62,5 +60,3 @@ class BlackjackDataModule(LightningDataModule):
             num_workers=self.num_workers,
             persistent_workers=True,
         )
-
-    # =======================================================================

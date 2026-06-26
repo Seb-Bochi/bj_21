@@ -10,14 +10,8 @@ MODEL_PATH = Path("models/model.pth")
 
 
 def prune_and_compare(model_path: Path = MODEL_PATH, amount: float = 0.3, n_runs: int = 1000) -> None:
-    """Load a saved model, prune it, save it, and compare inference speed.
+    """Prune a saved model, save the result, and compare inference speed."""
 
-    NOTE: Pruning is not relevant for this model. SimpleFNN is a 3-layer network with
-    at most 128 neurons — already runs in microseconds. Pruning zeros weights but does
-    not reduce computation (PyTorch still runs full matrix multiplications). Meaningful
-    speedup requires large models (ResNets, transformers) or structured pruning that
-    removes entire neurons. Kept here as an empirical demonstration.
-    """
     model = SimpleFNN(input_dim=3, hidden_dim=128, output_dim=2)
     model.load_state_dict(torch.load(model_path, map_location="cpu", weights_only=True))
     model.eval()

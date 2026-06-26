@@ -7,40 +7,30 @@ import torch
 
 from blackjack_predictor.logger import get_logger
 
-# Initialize the logger
 logger = get_logger(__name__)
-
-# Define constants for maintainability and type safety
 FEATURE_COLUMNS: Final[list[str]] = ["card1", "card2", "dealcard1"]
 LABEL_MAP: Final[dict[str, int]] = {"Loss": 0, "Win": 1}
 
 
 def preprocess(data_path: Union[str, Path], output_path: Union[str, Path], target_column: str = "winloss") -> None:
-    """
-    Preprocesses the raw Blackjack CSV into a PyTorch-compatible .pt file.
-    Includes type-safe data loading, validation, and structured logging.
-    """
+    """Convert the raw blackjack CSV into a processed tensor file."""
+
     data_p = Path(data_path)
     output_p = Path(output_path)
 
     logger.info(f"Starting preprocessing: {data_p}")
 
-    # Load data
     df = pd.read_csv(data_p)
 
-    # Remove empty first column if present
     if df.columns[0] == "":
         df = df.drop(df.columns[0], axis=1)
 
-    # Filter data based on target column and feature columns
     df_filtered = df[FEATURE_COLUMNS + [target_column]].copy()
     df_filtered = df_filtered[df_filtered[target_column].isin(LABEL_MAP.keys())].copy()
 
-    # Convert to tensors
     X = torch.tensor(df_filtered[FEATURE_COLUMNS].values, dtype=torch.float32)
     y = torch.tensor(df_filtered[target_column].map(LABEL_MAP).values, dtype=torch.long)
 
-    # Save processed tensors
     output_p.parent.mkdir(parents=True, exist_ok=True)
     torch.save({"X": X, "y": y}, output_p)
 
