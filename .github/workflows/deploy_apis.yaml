@@ -10,6 +10,9 @@ env:
   ARTIFACT_REGISTRY_REPOSITORY: dtumlops
   BLACKJACK_API_SERVICE: blackjack-api
   BLACKJACK_SPECIALIZED_API_SERVICE: blackjack-specialized-api
+  LOCUST_USERS: 25
+  LOCUST_SPAWN_RATE: 5
+  LOCUST_RUN_TIME: 2m
 
 jobs:
   deploy:
@@ -36,6 +39,20 @@ jobs:
         with:
           project_id: ${{ env.PROJECT_ID }}
 
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+
+      - name: Install dev dependencies
+        run: uv sync --group dev
+
+      - name: Create Locust results directory
+        run: mkdir -p locust-results
+
       - name: Configure Docker authentication
         run: |
           gcloud auth configure-docker ${{ env.GCP_REGION }}-docker.pkg.dev --quiet
@@ -61,6 +78,35 @@ jobs:
             --port 8080 \
             --allow-unauthenticated
 
+      - name: Resolve blackjack-api URL
+        run: |
+          blackjack_api_url=$(gcloud run services describe \
+            ${{ env.BLACKJACK_API_SERVICE }} \
+            --region ${{ env.GCP_REGION }} \
+            --format='value(status.url)')
+          echo "BLACKJACK_API_URL=$blackjack_api_url" >> "$GITHUB_ENV"
+
+      - name: Run blackjack-api load test
+        env:
+          API_TYPE: fastapi
+        run: |
+          mkdir -p locust-results/blackjack-api
+          uv run locust -f tests/locustfile.py \
+            --headless \
+            --users "$LOCUST_USERS" \
+            --spawn-rate "$LOCUST_SPAWN_RATE" \
+            --run-time "$LOCUST_RUN_TIME" \
+            --host "$BLACKJACK_API_URL" \
+            --csv locust-results/blackjack-api/results
+
+      - name: Upload blackjack-api load test artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: locust-results-blackjack-api
+          path: locust-results/blackjack-api/
+          if-no-files-found: error
+
       - name: Build blackjack-specialized-api image
         run: |
           docker build \
@@ -81,3 +127,32 @@ jobs:
             --region ${{ env.GCP_REGION }} \
             --port 3000 \
             --allow-unauthenticated
+
+      - name: Resolve blackjack-specialized-api URL
+        run: |
+          blackjack_specialized_api_url=$(gcloud run services describe \
+            ${{ env.BLACKJACK_SPECIALIZED_API_SERVICE }} \
+            --region ${{ env.GCP_REGION }} \
+            --format='value(status.url)')
+          echo "BLACKJACK_SPECIALIZED_API_URL=$blackjack_specialized_api_url" >> "$GITHUB_ENV"
+
+      - name: Run blackjack-specialized-api load test
+        env:
+          API_TYPE: specialized
+        run: |
+          mkdir -p locust-results/blackjack-specialized-api
+          uv run locust -f tests/locustfile.py \
+            --headless \
+            --users "$LOCUST_USERS" \
+            --spawn-rate "$LOCUST_SPAWN_RATE" \
+            --run-time "$LOCUST_RUN_TIME" \
+            --host "$BLACKJACK_SPECIALIZED_API_URL" \
+            --csv locust-results/blackjack-specialized-api/results
+
+      - name: Upload blackjack-specialized-api load test artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: locust-results-blackjack-specialized-api
+          path: locust-results/blackjack-specialized-api/
+          if-no-files-found: error
