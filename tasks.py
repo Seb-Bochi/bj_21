@@ -108,11 +108,7 @@ def vertex_train(
     """Create a Vertex AI custom training job from the checked-in job config."""
 
     ctx.run(
-        f"gcloud ai custom-jobs create "
-        f"--project {project} "
-        f"--region {region} "
-        f"--display-name {display_name} "
-        f"--config {config}",
+        f"gcloud ai custom-jobs create " f"--project {project} " f"--region {region} " f"--display-name {display_name} " f"--config {config}",
         echo=True,
         pty=not WINDOWS,
     )

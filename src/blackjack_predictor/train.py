@@ -24,7 +24,7 @@ def train(cfg: DictConfig) -> None:
     processed_data_path = Path(cfg.data_config.processed_path)
     raw_data_path = Path(cfg.data_config.raw_path)
     model_path = Path(cfg.data_config.model_path)
-    
+
     logger.info(f"Starting training with data at {processed_data_path} and output model at {model_path}")
 
     if not processed_data_path.exists():
