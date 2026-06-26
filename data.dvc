@@ -1,18 +1,18 @@
-   outs:
-- hash: md5
-  path: data
-  files:
-  - relpath: production_logs.jsonl
-    md5: 62fc9fd831546a33fe0c51d819304822
-    size: 218
-    cloud:
-      remote_storage:
-        etag: 088ae4f6d494a295031001
-        version_id: '1782382614917642'
-  - relpath: raw/blkjckhands.csv
-    md5: 87cdfb12125d3e6345583f1d5df12b5e
-    size: 61768478
-    cloud:
-      remote_storage:
-        etag: 08ccbac5b1c79095031001
-        version_id: '1781777755626828'
+outs:
+  - hash: md5
+    path: data
+    files:
+      - relpath: production_logs.jsonl
+        md5: 62fc9fd831546a33fe0c51d819304822
+        size: 218
+        cloud:
+          remote_storage:
+            etag: 088ae4f6d494a295031001
+            version_id: '1782382614917642'
+      - relpath: raw/blkjckhands.csv
+        md5: 87cdfb12125d3e6345583f1d5df12b5e
+        size: 61768478
+        cloud:
+          remote_storage:
+            etag: 08ccbac5b1c79095031001
+            version_id: '1781777755626828'
