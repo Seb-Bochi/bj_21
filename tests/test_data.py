@@ -1,5 +1,6 @@
 import pytest
 import torch
+
 from blackjack_predictor.data_.dataset import BlackjackDataset
 
 

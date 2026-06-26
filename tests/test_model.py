@@ -3,9 +3,9 @@ import time
 
 import pytest
 import torch
-from blackjack_predictor.models.ffnn import SimpleFNN
-
 import wandb
+
+from blackjack_predictor.models.ffnn import SimpleFNN
 
 
 def test_model_forward_shape():

@@ -74,11 +74,13 @@ explicit = true
 
 [tool.ruff]
 line-length = 150
-line-ending = "lf"
+src = ["src"]
 
 [tool.ruff.lint]
 # E: pycodestyle errors, F: Pyflakes, I: isort (auto-sorting imports)
 select = ["E", "F", "I"]
+[tool.ruff.lint.isort]
+known-first-party = ["blackjack_predictor"]
 
 [tool.mypy]
 python_version = "3.12"

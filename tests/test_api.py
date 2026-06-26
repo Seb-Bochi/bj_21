@@ -2,13 +2,14 @@ import asyncio
 import json
 from pathlib import Path
 
-import blackjack_predictor.api as api
-import blackjack_predictor.api_specialized as api_specialized
 import numpy as np
 import pytest
 import torch
 from fastapi.testclient import TestClient
 from pydantic import ValidationError
+
+import blackjack_predictor.api as api
+import blackjack_predictor.api_specialized as api_specialized
 
 
 class FakeModel:

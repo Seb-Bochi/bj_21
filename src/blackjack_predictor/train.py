@@ -2,11 +2,11 @@ from pathlib import Path
 
 import hydra
 import torch
+import wandb
 from omegaconf import DictConfig, OmegaConf
 from pytorch_lightning import Trainer
 from pytorch_lightning.loggers import WandbLogger
 
-import wandb
 from blackjack_predictor.data_ import BlackjackDataModule
 from blackjack_predictor.export_onnx import export_onnx_artifact
 from blackjack_predictor.models.ffnn import SimpleFNN

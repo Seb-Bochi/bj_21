@@ -1,9 +1,10 @@
 import pytest
 import torch
-from blackjack_predictor.models.ffnn import SimpleFNN
-from blackjack_predictor.tasks import PredictionTask
 from pytorch_lightning import LightningDataModule, Trainer
 from torch.utils.data import DataLoader, TensorDataset
+
+from blackjack_predictor.models.ffnn import SimpleFNN
+from blackjack_predictor.tasks import PredictionTask
 
 
 # A mock minimal DataModule to test the training pipeline without disk dependencies

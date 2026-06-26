@@ -2,7 +2,6 @@ import os
 from typing import Annotated, Optional
 
 import typer
-
 import wandb
 
 
