@@ -76,6 +76,7 @@ jobs:
             --image ${{ env.BLACKJACK_API_IMAGE }}:${{ github.sha }} \
             --region ${{ env.GCP_REGION }} \
             --port 8080 \
+            --memory 2Gi \
             --allow-unauthenticated
 
       - name: Resolve blackjack-api URL
@@ -126,6 +127,7 @@ jobs:
             --image ${{ env.BLACKJACK_SPECIALIZED_API_IMAGE }}:${{ github.sha }} \
             --region ${{ env.GCP_REGION }} \
             --port 3000 \
+            --memory 2Gi \
             --allow-unauthenticated
 
       - name: Resolve blackjack-specialized-api URL
