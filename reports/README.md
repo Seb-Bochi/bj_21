@@ -271,8 +271,7 @@ In total we have implemented 10 tests across 3 active test files. test_model.py 
 > *The total code coverage of code is X%, which includes all our source code. We are far from 100% coverage of our **
 > *code and even if we were then...*
 >
-> Answer:
-The total code coverage of our code is 78%, covering the model, dataset, datamodule, and API source files. The main uncovered areas are the Evidently drift detection logic in api.py (which requires real production log data to exercise) and minor edge case branches in dataset.py and ffnn.py.
+> Answer:The total code coverage of our code is 58%, covering the model, dataset, API, and data pipeline source files. The main uncovered areas are the Evidently drift detection logic in api.py 58%, the monitoring pipeline in optimize_and_drift_test.py 12%, helpers/export_onnx.py 39%, and data_/datamodule.py 38%.
 
 Even if we achieved 100% coverage, we would not trust the code to be entirely error-free. Coverage only measures that a line was executed during tests — not that it produced the correct result. A test can call every line of a function while asserting nothing meaningful. Moreover, 100% coverage cannot catch integration failures between components (e.g. a model trained with the wrong number of features being served by the API), data distribution shifts at inference time, or race conditions under concurrent requests.
 
@@ -443,7 +442,7 @@ Below are screenshots showing our W&B implementation:
 
 ![Losses](figures/log_loss.png)
 ![Reproducibility](figures/repro.png)
-put the picture of the sweep data 
+![Sweep](figures/repro.png)
 
 
 --- question 14 fill here ---
@@ -462,24 +461,24 @@ put the picture of the sweep data
 > Answer:
 For our project we developed three Docker images, all using ghcr.io/astral-sh/uv:python3.12-bookworm-slim as the base image with uv for fast dependency installation:
 
-1. Training image (train_uv.dockerfile) — copies the source code and data, installs dependencies via uv sync, and runs train.py as the entrypoint. The dev can run the following bash file to run the docker which will build and run the image.
+Training image (train_uv.dockerfile) — copies the source code and data, installs dependencies via uv sync, and runs train.py as the entrypoint. The dev can run the following bash file to run the docker which will build and run the image.
 
 
 bash dockerfiles/train.sh
 # which runs:
 docker build -f dockerfiles/train_uv.dockerfile . -t train:project
 docker run -v $(pwd)/models:/models train:project
-2. Evaluation image (evaluate_uv.dockerfile) — copies both source code and pre-trained models, runs evaluate.py:
+Evaluation image (evaluate_uv.dockerfile) — copies both source code and pre-trained models, runs evaluate.py:
 
 
 docker build -f dockerfiles/evaluate_uv.dockerfile . -t evaluate:project
 docker run evaluate:project
-3. API inference image (api_uv.dockerfile) — serves the FastAPI endpoint on port 8080 using uvicorn:
 
+API inference image (api_uv.dockerfile) — serves the FastAPI endpoint on port 8080 using uvicorn:
 
 docker build -f dockerfiles/api_uv.dockerfile . -t api:project
 docker run -p 8080:8080 api:project
-The training image uses --mount=type=cache,target=/root/.cache/uv to cache the uv package cache across builds, significantly speeding up rebuilds when only source code changes. All images use uv sync --frozen to guarantee the exact locked dependency versions are installed.
+The image uses a two-step uv sync --frozen approach: dependencies are installed first (before copying source code) so that Docker can cache the dependency layer and avoid reinstalling packages when only source code changes. The source code, configs, and pre-trained model weights are then copied into the image. The container starts with uvicorn blackjack_predictor.api.api:app --host 0.0.0.0 --port 8080.
 
 --- question 15 fill here ---
 
@@ -522,11 +521,15 @@ The profiling revealed that for our small model, data loading dominates inferenc
 > Answer:
 We used the following three GCP services:
 
-1. Cloud Storage (GCS) — the bucket gs://mlops_data_bucket stores the versioned dataset managed by DVC. When CI runs, it authenticates with GCP via a service account key (GCP_SA_KEY) and pulls the raw CSV from this bucket before running data statistics.
+Cloud Storage (GCS) — two buckets are used: gs://mlops_data_bucket stores the versioned dataset managed by DVC (pulled in CI via dvc pull), and gs://dtumlops-499809-training-data stores raw data, processed data, and model weights during Vertex AI training jobs.
 
-2. Artifact Registry — stores Docker container images built by Cloud Build, hosted at europe-west1-docker.pkg.dev/$PROJECT_ID/dtumlops/blackjack-train. It acts as a private Docker registry within GCP.
+Artifact Registry — stores Docker container images at europe-west1-docker.pkg.dev/dtumlops-499809/dtumlops/. It hosts three images: the training image (blackjack-train), the FastAPI inference image (blackjack-api), and the ONNX specialized inference image (blackjack-specialized-api).
 
-3. Cloud Build + Cloud Run — defined in cloudbuild.yaml, Cloud Build automatically builds the training Docker image and pushes it to Artifact Registry. Cloud Run then deploys the blackjack-predictor-api container as a serverless endpoint on port 8080 in europe-west1, with 2 CPUs and 2Gi memory, accessible without authentication. This allows the FastAPI inference endpoint to be deployed and scaled automatically without managing servers.
+Cloud Build — defined in gcloud/vertex/cloudbuild.yaml, it builds both the training and API Docker images, pushes them to Artifact Registry, deploys the API to Cloud Run, and verifies the deployment. It triggers when source files change.
+
+Vertex AI — runs the training job on a n1-standard-4 machine using the training Docker image, reading data directly from GCS and writing the trained model back to GCS.
+
+Cloud Run — deploys both the FastAPI inference API (blackjack-api, port 8080) and the ONNX specialized API (blackjack-specialized-api, port 3000) as serverless public endpoints in europe-west1 with 2Gi memory, scaled automatically without managing servers.
 
 --- question 17 fill here ---
 

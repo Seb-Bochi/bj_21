@@ -40,7 +40,8 @@ def sweep_iteration():
     wandb_logger = WandbLogger()
 
     trainer = Trainer(
-        max_epochs=3,
+        max_epochs=5,
+        limit_train_batches=7000,
         accelerator="auto",
         devices=1,
         logger=wandb_logger,
@@ -73,6 +74,6 @@ if __name__ == "__main__":
     logger.info(f"Sweep ID generated: {sweep_id}")
     logger.info("Starting sweep agent for 3 iterations")
 
-    wandb.agent(sweep_id, function=sweep_iteration, count=3)
+    wandb.agent(sweep_id, function=sweep_iteration, count=8)
 
     logger.info("Sweep pipeline complete")
