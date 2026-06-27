@@ -793,7 +793,9 @@ will check the repositories and the code to verify your answers.
 > s214584 was responsible for managing the project's configuration, testing, and optimization pipelines. This member integrated Hydra to load configurations and manage hyperparameters dynamically across experiments (M11). They also implemented code profiling to analyze execution times and optimize performance, specifically benchmarking data loading and model pruning steps (M13), and set up structured logging to capture important system events (M14). Furthermore, they configured the testing pipeline to calculate and report code coverage, ensuring the codebase maintained a high standard of reliability (M16). As well as M23,27,28,29,30
 >
 > Student s214604 was responsible for setting up the codebase boilerplate and creating the initial ML models. Furthermore, they primarily focused on the APIs, managing everything from writing tests to configuring the deployment pipelines.
->
+
+Student s224014 primarily worked on the GCP infrastructure and model development. Their contributions included setting up Vertex AI, configuring cloud-based data storage, and developing both the frontend and the backend supporting the frontend.
+
 > We have used chatGPT and claude code for the following, implementation of certain code, understanding concept, debugging and typo of text.
 
 
