@@ -7,45 +7,73 @@ Prediction for Blackjack
 
 The directory structure of the project looks like this:
 ```txt
-├── .github/                  # Github actions and dependabot
-│   ├── dependabot.yaml
-│   └── workflows/
-│       └── tests.yaml
-├── configs/                  # Configuration files
-├── data/                     # Data directory
-│   ├── processed
-│   └── raw
-├── dockerfiles/              # Dockerfiles
-│   ├── api.Dockerfile
-│   └── train.Dockerfile
-├── docs/                     # Documentation
-│   ├── mkdocs.yml
+├── .devcontainer/                 # Dev container setup scripts
+├── .dvc/                          # DVC configuration
+├── .github/                       # GitHub workflows, agents, and prompts
+│   ├── workflows/
+│   ├── agents/
+│   ├── dependabot_pip.yaml
+│   └── dependabot_uv.yaml
+├── configs/                       # Configuration files
+├── data/                          # Raw and processed datasets
+│   ├── processed/
+│   └── raw/
+├── dockerfiles/                   # Service and training Dockerfiles/scripts
+│   ├── api_uv.dockerfile
+│   ├── backend.dockerfile
+│   ├── evaluate_uv.dockerfile
+│   ├── frontend.dockerfile
+│   ├── train_uv.dockerfile
+│   ├── evaluate.sh
+│   └── train.sh
+├── docs/                          # MkDocs documentation
+│   ├── mkdocs.yaml
+│   ├── README.md
 │   └── source/
 │       └── index.md
-├── models/                   # Trained models
-├── notebooks/                # Jupyter notebooks
-├── reports/                  # Reports
+├── gcloud/                        # Cloud Build, Vertex AI, and monitoring config
+│   ├── monitoring/
+│   │   └── alert_policy.json
+│   └── vertex/
+│       ├── blackjack_train_custom_job.yaml
+│       ├── cloudbuild.yaml
+│       └── scripts/
+├── models/                        # Exported and trained model artifacts
+├── notebooks/                     # Jupyter notebooks
+├── outputs/                       # Hydra/experiment outputs
+├── reports/                       # Reports and generated figures
 │   └── figures/
-├── src/                      # Source code
-│   ├── project_name/
-│   │   ├── __init__.py
-│   │   ├── api.py
-│   │   ├── data.py
-│   │   ├── evaluate.py
-│   │   ├── models.py
-│   │   ├── train.py
-│   │   └── visualize.py
-└── tests/                    # Tests
-│   ├── __init__.py
+├── samples/                       # Example frontend/backend apps
+├── src/                           # Python package source
+│   └── blackjack_predictor/
+│       ├── api/
+│       ├── data_/
+│       ├── helpers/
+│       ├── models/
+│       ├── monitoring/
+│       ├── performance/
+│       ├── evaluate.py
+│       ├── run_sweep.py
+│       ├── tasks.py
+│       └── train.py
+├── tests/                         # Unit, integration, and performance tests
+│   ├── performancetests/
 │   ├── test_api.py
 │   ├── test_data.py
-│   └── test_model.py
-├── .gitignore
-├── .pre-commit-config.yaml
+│   ├── test_model.py
+│   ├── test_onnx_alignment.py
+│   ├── test_preprocessing.py
+│   ├── test_production.py
+│   └── test_training_procedure.py
+├── Dockerfile
 ├── LICENSE
-├── pyproject.toml            # Python project file
-├── README.md                 # Project README
-└── tasks.py                  # Project tasks
+├── README.md                      # Project README
+├── data.dvc
+├── main.py
+├── policy.json
+├── pyproject.toml                 # Python project metadata
+├── tasks.py                       # Invoke task entrypoints
+└── uv.lock
 ```
 
 
