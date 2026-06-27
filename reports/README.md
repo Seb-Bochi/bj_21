@@ -637,7 +637,7 @@ uv run invoke vertex-train
 >
 > Answer:
 
---- question 23 fill here ---
+We successfully developed two versions of our API. The first was built using FastAPI, and the second was a specialized machine learning API utilizing the BentoML framework alongside an ONNX instance of our model. Both APIs are primarily designed to run inference. By supplying the two cards dealt to the player and the dealer's first card, the API returns the probability of each scenario (i.e., whether the player or the dealer wins) along with a boolean prediction. Additionally, the FastAPI implementation includes built-in data drift detection to monitor how drift might affect the model's predictions over time.
 
 ### Question 24
 
@@ -653,7 +653,7 @@ uv run invoke vertex-train
 >
 > Answer:
 
---- question 24 fill here ---
+We developed a comprehensive deployment pipeline for our APIs by integrating the deployment process directly into our CI/CD pipeline. Specifically, this was handled using GitHub Workflows (configured in deploy_apis.yaml), which automatically builds Docker images, pushes them to the registry, and deploys them to Google Cloud Platform (GCP). While we primarily tested the deployed APIs through their interactive GUIs rather than through programmatic invocation, they can be easily invoked using standard REST API calls against the generated deployment URL. Currently, the deployment URL are gathered in the pipeline, when the APIs has been successfully deployed. Better practices regarding this could have been investigated.
 
 ### Question 25
 
@@ -668,8 +668,9 @@ uv run invoke vertex-train
 > *our API could handle approximately 500 requests per second before the service crashed.*
 >
 > Answer:
+For functional testing we used pytest and FastAPI’s TestClient to test both API variants. These tests verify that the /predict endpoint returns valid probabilities, rejects invalid card values with the correct error codes, and logs predictions correctly. We also tested the specialized ONNX-based API and checked that missing model artifacts raise the expected errors.
+For load testing we used Locust in our GitHub Actions deployment workflow. After deploying both APIs to Google Cloud Run, the pipeline ran headless Locust tests against the live service URLs. The test simulated 25 concurrent users for 2 minutes, with randomized requests sent mainly to /predict and periodic checks to /health for the FastAPI service.
 
---- question 25 fill here ---
 
 ### Question 26
 
@@ -684,7 +685,9 @@ uv run invoke vertex-train
 >
 > Answer:
 
---- question 26 fill here ---
+We implemented monitoring for the deployed FastAPI model at both the application and cloud level. Inside the API, each prediction request is logged to production_logs.jsonl, including the input cards, predicted class, and win probability. A dedicated /monitoring/drift endpoint then compares these real production inputs against the reference training dataset using Evidently’s DataDriftPreset. It returns whether drift was detected, how many features drifted, the overall drift share, and per-feature drift scores for the three card inputs.
+We also added operational monitoring. The API exposes Prometheus-compatible metrics through prometheus-fastapi-instrumentator, and we included a /health endpoint so the deployed service can be checked automatically. On GCP, we configured a Cloud Monitoring alert policy for the Cloud Run service that triggers if 5xx errors exceed 5% over a 5-minute window.
+Together, this setup helps us monitor both model behavior and service reliability, so we can catch data drift, failed requests, and unhealthy deployments before they become major issues.
 
 ## Overall discussion of project
 
@@ -791,6 +794,8 @@ The biggest challenge was the DVC data pipeline integration with GitHub CI. We w
 Student s243576 worked on the GitHub Actions workflows, Hydra config files, implementation of the data tests and ensuring they pass on GitHub CI, integration of Weights & Biases logging and the automated workflow to promote models to production aliases, and the Docker files implementation for training and evaluation.
 
 s214584 was responsible for managing the project's configuration, testing, and optimization pipelines. This member integrated Hydra to load configurations and manage hyperparameters dynamically across experiments (M11). They also implemented code profiling to analyze execution times and optimize performance, specifically benchmarking data loading and model pruning steps (M13), and set up structured logging to capture important system events (M14). Furthermore, they configured the testing pipeline to calculate and report code coverage, ensuring the codebase maintained a high standard of reliability (M16). As well as M23,27,28,29,30
+
+Student s214604 was responsible for setting up the codebase boilerplate and creating the initial ML models. Furthermore, they primarily focused on the APIs, managing everything from writing tests to configuring the deployment pipelines.
 
 We have used chatGPT and claude code for the following, implementation of certain code, understanding concept, debugging and typo of text.
 
